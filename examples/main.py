@@ -74,7 +74,8 @@ def main(dataset_name,
 
 
 if __name__ == '__main__':
-    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 2, 0.01, 10, 'bcelogitloss', 1e-6, 'cpu', '../tmp_save_dir')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 2, 0.01, 10, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
 
 
 # if __name__ == '__main__':
