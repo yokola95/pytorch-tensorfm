@@ -2,15 +2,16 @@ import torch
 import torch.nn as nn
 import numpy as np
 
+
 class FieldWeightedFactorizationMachineModel(nn.Module):
     def __init__(self, num_fields, embed_dim, num_factors):
         super(FieldWeightedFactorizationMachineModel, self).__init__()
 
         self.num_fields = np.max(num_fields) + 1  # num indices (max possible ind.), +1 to start from 1 and not from 0
         self.embedding_dim = embed_dim
-        self.num_factors = num_factors       # length of X
+        self.num_factors = num_factors  # length of X
 
-        self.w0 = nn.Parameter(torch.zeros(1))   # w0 global bias
+        self.w0 = nn.Parameter(torch.zeros(1))  # w0 global bias
         self.bias = nn.Embedding(self.num_fields, 1)  # biases w
 
         self.embeddings = nn.Embedding(self.num_fields, embed_dim)
@@ -60,6 +61,6 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         # factorization_interactions = torch.sum(torch.pow(torch.matmul(emb, self.field_weights.t()), 2), dim=1, keepdim=True)  # (batch_size, 1)
 
         # Combine field interactions and factorization interactions
-        output = self.w0 + biases_sum + factorization_interactions   # + pairwise_interactions
+        output = self.w0 + biases_sum + factorization_interactions  # + pairwise_interactions
         # output = torch.sigmoid(x.squeeze(output))
         return output
