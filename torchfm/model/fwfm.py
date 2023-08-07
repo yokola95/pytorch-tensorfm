@@ -4,19 +4,20 @@ import numpy as np
 
 
 class FieldWeightedFactorizationMachineModel(nn.Module):
-    def __init__(self, num_fields, embed_dim, num_factors):
+    def __init__(self, num_features, embed_dim, num_fields):
         super(FieldWeightedFactorizationMachineModel, self).__init__()
 
-        self.num_fields = np.max(num_fields) + 1  # num indices (max possible ind.), +1 to start from 1 and not from 0
+        # with some abuse of notation, num_features -- number of different values over all samples, num_fields - number of columns
+        self.num_features = np.max(num_features) + 1  # num indices (max possible ind.), +1 to start from 1 and not from 0
         self.embedding_dim = embed_dim
-        self.num_factors = num_factors  # length of X
+        self.num_fields = num_fields  # length of X
 
         self.w0 = nn.Parameter(torch.zeros(1))  # w0 global bias
-        self.bias = nn.Embedding(self.num_fields, 1)  # biases w
+        self.bias = nn.Embedding(self.num_features, 1)  # biases w: for every field 1-dim embedding
 
-        self.embeddings = nn.Embedding(self.num_fields, embed_dim)
+        self.embeddings = nn.Embedding(self.num_features, embed_dim)
 
-        self.field_inter_weights = torch.zeros(num_factors, num_factors)
+        self.field_inter_weights = nn.Parameter(torch.zeros(num_fields, num_fields))
 
         with torch.no_grad():
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
@@ -48,8 +49,8 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         # pairwise_interactions = 0.5 * torch.sum(square_of_sum - sum_of_square, dim=1, keepdim=True)  # (batch_size, 1)
 
         factorization_interactions = 0
-        for i in range(self.num_factors - 1):
-            for j in range(i + 1, self.num_factors):
+        for i in range(self.num_fields - 1):
+            for j in range(i + 1, self.num_fields):
                 # print(i,j)
                 # print(i, emb[:, i, :])
                 # print(j, emb[:, j, :])

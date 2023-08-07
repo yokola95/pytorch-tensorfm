@@ -3,6 +3,7 @@ import tqdm
 from sklearn.metrics import roc_auc_score
 from torch.utils.data import DataLoader
 from torchfm.torch_utils.utils import *
+import time
 
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
@@ -60,9 +61,11 @@ def main(dataset_name,
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     early_stopper = EarlyStopper(num_trials=2, save_path=f'{save_dir}/{model_name}.pt')
     for epoch_i in range(epoch):
+        start = time.time()
         train(model, optimizer, train_data_loader, criterion, device)
+        end = time.time()
         auc = test(model, valid_data_loader, device)
-        print('epoch:', epoch_i, 'validation: auc:', auc)
+        print('epoch:', epoch_i, 'validation: auc:', auc, "train time:", end-start)
         if not early_stopper.is_continuable(model, auc):
             print(f'validation: best auc: {early_stopper.best_accuracy}')
             break
@@ -71,7 +74,8 @@ def main(dataset_name,
 
 
 if __name__ == '__main__':
-    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 1, 0.01, 10, 'bcelogitloss', 1e-6, 'cpu', '../tmp_save_dir')
+    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 2, 0.01, 10, 'bcelogitloss', 1e-6, 'cpu', '../tmp_save_dir')
+
 
 # if __name__ == '__main__':
 #     import argparse
