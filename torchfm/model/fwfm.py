@@ -1,19 +1,19 @@
 import torch
 import torch.nn as nn
+import numpy as np
 
+class FieldWeightedFactorizationMachineModel(nn.Module):
+    def __init__(self, num_fields, embed_dim, num_factors):
+        super(FieldWeightedFactorizationMachineModel, self).__init__()
 
-class FieldWeightedFactorizationMachine(nn.Module):
-    def __init__(self, num_fields, embedding_dim, num_factors):
-        super(FieldWeightedFactorizationMachine, self).__init__()
-
-        self.num_fields = num_fields         # num indices (max possible ind.)
-        self.embedding_dim = embedding_dim
+        self.num_fields = np.max(num_fields) + 1  # num indices (max possible ind.), +1 to start from 1 and not from 0
+        self.embedding_dim = embed_dim
         self.num_factors = num_factors       # length of X
 
         self.w0 = nn.Parameter(torch.zeros(1))   # w0 global bias
-        self.bias = nn.Embedding(num_fields, 1)  # biases w
+        self.bias = nn.Embedding(self.num_fields, 1)  # biases w
 
-        self.embeddings = nn.Embedding(num_fields, embedding_dim)
+        self.embeddings = nn.Embedding(self.num_fields, embed_dim)
 
         self.field_inter_weights = torch.zeros(num_factors, num_factors)
 
@@ -29,6 +29,10 @@ class FieldWeightedFactorizationMachine(nn.Module):
         """
         :param x: Float tensor of size ``(batch_size, num_fields)``
         """
+        # print(self.num_fields)
+        # print(self.num_factors)
+        # print(self.embeddings)
+        # print(x)
 
         # Embedding layer
         emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
@@ -45,13 +49,13 @@ class FieldWeightedFactorizationMachine(nn.Module):
         factorization_interactions = 0
         for i in range(self.num_factors - 1):
             for j in range(i + 1, self.num_factors):
-                print(i,j)
-                print(i, emb[:, i, :])
-                print(j, emb[:, j, :])
+                # print(i,j)
+                # print(i, emb[:, i, :])
+                # print(j, emb[:, j, :])
                 inner_prod = torch.sum(emb[:, i, :] * emb[:, j, :], dim=-1)
-                print(inner_prod)
+                # print(inner_prod)
                 factorization_interactions += self.get_field_inter_weight(i, j) * inner_prod
-                print(factorization_interactions)
+                # print(factorization_interactions)
 
         # factorization_interactions = torch.sum(torch.pow(torch.matmul(emb, self.field_weights.t()), 2), dim=1, keepdim=True)  # (batch_size, 1)
 
@@ -59,16 +63,3 @@ class FieldWeightedFactorizationMachine(nn.Module):
         output = self.w0 + biases_sum + factorization_interactions   # + pairwise_interactions
         # output = torch.sigmoid(x.squeeze(output))
         return output
-
-# Example usage
-num_fields = 10
-num_features = 3
-embedding_dim = 5
-num_factors = 3
-
-model = FieldWeightedFactorizationMachine(num_fields, embedding_dim, num_factors)
-x1 = torch.tensor([[1, 2, 3], [4, 5, 6], [1, 2, 3], [4, 5, 6], [1, 2, 3], [4, 5, 6], [1, 2, 3], [4, 5, 6]])  # example input
-output = model(x1)
-print(output)
-
-loss_fn = torch.nn.BCELoss(reduction='mean')  # torch.nn.MSELoss(reduction='mean')
