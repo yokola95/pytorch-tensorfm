@@ -1,6 +1,6 @@
 import torch
 import tqdm
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error
 from torch.utils.data import DataLoader
 from torchfm.torch_utils.utils import *
 import time
@@ -33,7 +33,7 @@ def test(model, data_loader, device):
             y = model(fields)
             targets.extend(target.tolist())
             predicts.extend(y.tolist())
-    return roc_auc_score(targets, predicts)
+    return mean_squared_error(targets, predicts)  # roc_auc_score
 
 
 def main(dataset_name,
@@ -46,6 +46,7 @@ def main(dataset_name,
          weight_decay,
          device,
          save_dir):
+    num_workers = 1
     device = torch.device(device)
     dataset = get_dataset(dataset_name, dataset_path)
     train_length = int(len(dataset) * 0.8)
@@ -53,9 +54,9 @@ def main(dataset_name,
     test_length = len(dataset) - train_length - valid_length
     train_dataset, valid_dataset, test_dataset = torch.utils.data.random_split(
         dataset, (train_length, valid_length, test_length))
-    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=8)
-    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=8)
-    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=8)
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers)
+    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers)
+    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers)
     model = get_model(model_name, dataset).to(device)
     criterion = get_criterion(criterion)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -75,7 +76,7 @@ def main(dataset_name,
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 2, 0.01, 10, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
+    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 2, 0.01, 3, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
 
 
 # if __name__ == '__main__':
