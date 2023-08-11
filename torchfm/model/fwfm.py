@@ -14,19 +14,25 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         self.embedding_dim = embed_dim
         self.num_fields = num_fields                  # length of X
 
-        self.w0 = nn.Parameter(torch.zeros(1))  # w0 global bias
+        self.w0 = nn.Parameter(torch.empty(1))  # w0 global bias
         self.bias = nn.Embedding(self.num_features, 1)  # biases w: for every field 1 dimension embedding
 
         self.embeddings = nn.Embedding(self.num_features, embed_dim)
 
-        self.field_inter_weights = nn.Parameter(torch.zeros(num_fields, num_fields))
-
         with torch.no_grad():
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
             nn.init.trunc_normal_(self.embeddings.weight, std=0.01)
-            nn.init.trunc_normal_(self.field_inter_weights, std=0.01)
 
-    def get_field_inter_weight(self, i, j):
+        self.field_inter_weights = self._init_interaction_weights(num_fields)
+
+    def _init_interaction_weights(self, num_fields):
+        aux = torch.empty(num_fields, num_fields)
+        with torch.no_grad():
+            nn.init.trunc_normal_(aux, std=0.01)
+            aux = aux.triu() + aux.triu(1).transpose(0, 1)  # make it symmetric
+        return nn.Parameter(aux)
+
+    def _get_field_inter_weight(self, i, j):
         return self.field_inter_weights[i][j].item()
 
     def _get_fixed_field_inter_weights(self):
@@ -42,12 +48,9 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         factorization_interactions = 0.0
         for i in range(self.num_fields - 1):
             for j in range(i + 1, self.num_fields):
-                # print(i,j)
-                # print(i, emb[:, i, :])
-                # print(j, emb[:, j, :])
                 inner_prod = torch.sum(emb[:, i, :] * emb[:, j, :], dim=-1)
                 # print(inner_prod)
-                factorization_interactions += self.get_field_inter_weight(i, j) * inner_prod
+                factorization_interactions += self._get_field_inter_weight(i, j) * inner_prod
 
         return factorization_interactions
 
@@ -61,11 +64,6 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         """
         :param x: Float tensor of size ``(batch_size, num_fields)``
         """
-        # print(self.num_fields)
-        # print(self.num_factors)
-        # print(self.embeddings)
-        # print(x)
-
         # Embedding layer
         emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
 
@@ -79,7 +77,6 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
 
         # Combine field interactions and factorization interactions
         output = self.w0 + biases_sum + factorization_interactions
-        # output = torch.sigmoid(x.squeeze(output))
         return output
 
 

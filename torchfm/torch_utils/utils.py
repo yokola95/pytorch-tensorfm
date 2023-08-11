@@ -21,7 +21,7 @@ from torchfm.model.wd import WideAndDeepModel
 from torchfm.model.xdfm import ExtremeDeepFactorizationMachineModel
 from torchfm.model.afn import AdaptiveFactorizationNetwork
 from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel
-
+from torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
 
 def get_criterion(criterion):
     if criterion == 'bceloss':
@@ -68,7 +68,9 @@ def get_model(name, dataset):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)  # num_factors - num entries in  a row
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
+    elif name == 'lowrank_fwfm':
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.5 * num_columns))
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
