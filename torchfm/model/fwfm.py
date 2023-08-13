@@ -1,13 +1,13 @@
+from abc import abstractmethod
+
 import torch
 import torch.nn as nn
 import numpy as np
 
 
-class FieldWeightedFactorizationMachineModel(nn.Module):
-    __use_tensors_field_interact_calc = True
-
+class BaseFieldWeightedFactorizationMachineModel(nn.Module):
     def __init__(self, num_features, embed_dim, num_fields):
-        super(FieldWeightedFactorizationMachineModel, self).__init__()
+        super(BaseFieldWeightedFactorizationMachineModel, self).__init__()
 
         # num_features -- number of different values over all samples, num_fields -- number of columns
         self.num_features = np.max(num_features) + 1  # number of entries for embedding = (max possible ind.) +1 to since indexing starting from 0
@@ -15,14 +15,41 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         self.num_fields = num_fields                  # length of X
 
         self.w0 = nn.Parameter(torch.empty(1))  # w0 global bias
-        self.bias = nn.Embedding(self.num_features, 1)  # biases w: for every field 1 dimension embedding
+        self.bias = nn.Embedding(self.num_features, 1)  # biases w: for every field 1 dimension embedding (num_features, 1)
 
-        self.embeddings = nn.Embedding(self.num_features, embed_dim)
+        self.embeddings = nn.Embedding(self.num_features, embed_dim) # embedding vectors V: (num_features, embedding_dim)
 
         with torch.no_grad():
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
             nn.init.trunc_normal_(self.embeddings.weight, std=0.01)
 
+    def forward(self, x):
+        """
+        :param x: Float tensor of size ``(batch_size, num_fields)``
+        """
+        # Embedding layer
+        emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
+
+        # Biases (field weights)
+        bias_x = self.bias(x).squeeze()
+        biases_sum = bias_x.squeeze().sum(1) if bias_x.dim() > 1 else bias_x.squeeze().sum(0)  # (batch_size, 1)
+
+        factorization_interactions = self.calc_factorization_interactions(emb)  # (batch_size, 1)
+
+        # Combine field interactions and factorization interactions
+        output = self.w0 + biases_sum + factorization_interactions
+        return output
+
+    @abstractmethod
+    def calc_factorization_interactions(self, emb):
+        pass
+
+
+class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
+    __use_tensors_field_interact_calc = True
+
+    def __init__(self, num_features, embed_dim, num_fields):
+        super(FieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
         self.field_inter_weights = self._init_interaction_weights(num_fields)
 
     def _init_interaction_weights(self, num_fields):
@@ -32,17 +59,17 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
             aux = aux.triu() + aux.triu(1).transpose(0, 1)  # make it symmetric
         return nn.Parameter(aux)
 
+    def calc_factorization_interactions(self, emb):              # emb = (batch_size, num_fields, embedding_dim)
+        if self.__use_tensors_field_interact_calc:
+            return self._calc_factorization_interactions_tensors(emb)
+        else:
+            return self._calc_factorization_interactions_nested_loops(emb)
+
     def _get_field_inter_weight(self, i, j):
         return self.field_inter_weights[i][j].item()
 
     def _get_fixed_field_inter_weights(self):
         return torch.sub(self.field_inter_weights, torch.diagflat(torch.diag(self.field_inter_weights)))
-
-    def calc_factorization_interactions(self, emb):
-        if self.__use_tensors_field_interact_calc:
-            return self._calc_factorization_interactions_tensors(emb)
-        else:
-            return self._calc_factorization_interactions_nested_loops(emb)
 
     def _calc_factorization_interactions_nested_loops(self, emb):
         factorization_interactions = 0.0
@@ -60,24 +87,6 @@ class FieldWeightedFactorizationMachineModel(nn.Module):
         inner_product = (emb_mul_emb_T * field_inter_weights_fixed).sum(1).sum(1)         # torch.inner  does not work; .sum(1).sum(1)  to stay with (batch_size, 1) shape
         return torch.mul(inner_product, 0.5)   # (batch_size, 1)
 
-    def forward(self, x):
-        """
-        :param x: Float tensor of size ``(batch_size, num_fields)``
-        """
-        # Embedding layer
-        emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
-
-        # Biases (field weights)
-        bias_x = self.bias(x).squeeze()
-        biases_sum = bias_x.squeeze().sum(1) if bias_x.dim() > 1 else bias_x.squeeze().sum(0)  # (batch_size, 1)
-
-        factorization_interactions = self.calc_factorization_interactions(emb)  # (batch_size, 1)
-
-        # print(self.w0, biases_sum, factorization_interactions)
-
-        # Combine field interactions and factorization interactions
-        output = self.w0 + biases_sum + factorization_interactions
-        return output
 
 
 # # Pairwise interactions
