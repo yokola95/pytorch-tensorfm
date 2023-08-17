@@ -46,7 +46,7 @@ def get_dataset(name, path):
     elif name == 'avazu':
         return AvazuDataset(path)
     elif name == 'dummy':
-        return DummyDataset(path)
+        return DummyDataset(path, header=0)
     else:
         raise ValueError('unknown dataset name: ' + name)
 
