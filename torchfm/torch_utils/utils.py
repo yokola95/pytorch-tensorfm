@@ -114,14 +114,20 @@ class EarlyStopper(object):
     def __init__(self, num_trials, save_path):
         self.num_trials = num_trials
         self.trial_counter = 0
-        self.best_accuracy = 0
+        self.best_error = None
         self.save_path = save_path
 
-    def is_continuable(self, model, accuracy):
-        if accuracy > self.best_accuracy:
-            self.best_accuracy = accuracy
+    def is_continuable(self, model, optimizer, error):
+        if self.best_error is None or error < self.best_error:
+            self.best_error = error
             self.trial_counter = 0
-            torch.save(model, self.save_path)
+            # torch.save(model, self.save_path)
+            torch.save({
+                'epoch': self.trial_counter,
+                'model_state_dict': model.state_dict(),
+                'optimizer_state_dict': optimizer.state_dict(),
+                'error': error
+            }, self.save_path)
             return True
         elif self.trial_counter + 1 < self.num_trials:
             self.trial_counter += 1

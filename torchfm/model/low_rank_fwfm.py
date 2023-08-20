@@ -15,7 +15,7 @@ class LowRankFieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizati
             nn.init.trunc_normal_(self.diag_e, std=0.01)
             nn.init.trunc_normal_(self.U, std=0.01)
 
-    def _calc_diag_d(self):
+    def _calc_diag_d(self):  # the efficient way
         tmp = self.U.t() * self.diag_e
         return -(self.U * tmp.t()).sum(0)       # (num_fields)
 

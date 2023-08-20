@@ -2,6 +2,7 @@ from abc import abstractmethod
 
 import torch
 import torch.nn as nn
+import torch.nn.utils.parametrize as parametrize
 import numpy as np
 
 
@@ -44,18 +45,23 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
         pass
 
 
+class Symmetric(nn.Module):
+    def forward(self, x):
+        return x.triu() + x.triu(1).transpose(-1, -2)
+
+
 class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
     __use_tensors_field_interact_calc = True
 
     def __init__(self, num_features, embed_dim, num_fields):
         super(FieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
         self.field_inter_weights = self._init_interaction_weights(num_fields)
+        parametrize.register_parametrization(self, "field_inter_weights", Symmetric())      # ???
 
     def _init_interaction_weights(self, num_fields):
         aux = torch.empty(num_fields, num_fields)
         with torch.no_grad():
-            nn.init.trunc_normal_(aux, std=0.01)
-            aux = aux + aux.transpose(0, 1)              # .triu() + aux.triu(1).transpose(0, 1)  # make it symmetric           # TODO: check parametrization
+            nn.init.trunc_normal_(aux, std=0.01)   # aux = aux + aux.transpose(0, 1)              # .triu() + aux.triu(1).transpose(-1, -2)  # make it symmetric           # TODO: check parametrization
         return nn.Parameter(aux)
 
     def calc_factorization_interactions(self, emb):              # emb = (batch_size, num_fields, embedding_dim)

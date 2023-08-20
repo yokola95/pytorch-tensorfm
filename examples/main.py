@@ -60,23 +60,23 @@ def main(dataset_name,
     model = get_model(model_name, dataset).to(device)
     criterion = get_criterion(criterion)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    early_stopper = EarlyStopper(num_trials=2, save_path=f'{save_dir}/{model_name}.pt')
+    early_stopper = EarlyStopper(num_trials=epoch, save_path=f'{save_dir}/{model_name}.pt')
     for epoch_i in range(epoch):
         start = time.time()
         train(model, optimizer, train_data_loader, criterion, device)
         end = time.time()
-        auc = test(model, valid_data_loader, device)
-        print('epoch:', epoch_i, 'validation: auc:', auc, "train time:", end-start)
-        if not early_stopper.is_continuable(model, auc):
-            print(f'validation: best auc: {early_stopper.best_accuracy}')
+        mse = test(model, valid_data_loader, device)
+        print('epoch:', epoch_i, 'validation: mse:', mse, "train time:", end-start)
+        if not early_stopper.is_continuable(model, optimizer, mse):
+            print(f'validation: best error: {early_stopper.best_error}')
             break
     auc = test(model, test_data_loader, device)
-    print(f'test auc: {auc}')
+    print(f'test error: {mse}')
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    main('dummy', '../torchfm/test-datasets/dummy.txt', 'lowrank_fwfm', 2, 0.01, 10, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
+    main('dummy', '../torchfm/test-datasets/dummy.txt', 'lowrank_fwfm', 5, 0.01, 10, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
 
 
 # if __name__ == '__main__':

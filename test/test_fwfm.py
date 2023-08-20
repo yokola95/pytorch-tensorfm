@@ -18,10 +18,11 @@ class TestFieldWeightedFactorizationMachineModel(unittest.TestCase):
             emb = model.embeddings(x)
             res1 = model._calc_factorization_interactions_tensors(emb)
             res2 = model._calc_factorization_interactions_nested_loops(emb)
-            diffTensor = torch.flatten(res1) - torch.flatten(res2)
-            diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)
+            assert torch.allclose(res1, res2)
 
-            assert diffTensorNorm < 1e-9
+            # diffTensor = torch.flatten(res1) - torch.flatten(res2)
+            # diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)
+            # assert diffTensorNorm < 1e-9
 
     def test_low_rank_interaction_matrix_calc(self):
         num_features = 10
@@ -34,10 +35,12 @@ class TestFieldWeightedFactorizationMachineModel(unittest.TestCase):
 
             res1 = model._calc_diag_d()
             res2 = model._calc_diag_d_straighforward()
-            diffTensor = torch.flatten(res1) - torch.flatten(res2)
-            diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)
+            assert torch.allclose(res1, res2)
 
-            assert diffTensorNorm < 1e-9
+            # diffTensor = torch.flatten(res1) - torch.flatten(res2)
+            # diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)
+            # assert diffTensorNorm < 1e-9
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
