@@ -61,7 +61,7 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
     def _init_interaction_weights(self, num_fields):
         aux = torch.empty(num_fields, num_fields)
         with torch.no_grad():
-            nn.init.trunc_normal_(aux, std=0.01)   # aux = aux + aux.transpose(0, 1)              # .triu() + aux.triu(1).transpose(-1, -2)  # make it symmetric           # TODO: check parametrization
+            nn.init.trunc_normal_(aux, std=0.01)   # aux = aux + aux.transpose(0, 1)    # .triu() + aux.triu(1).transpose(-1, -2)  # make it symmetric           # TODO: check parametrization
         return nn.Parameter(aux)
 
     def calc_factorization_interactions(self, emb):              # emb = (batch_size, num_fields, embedding_dim)
