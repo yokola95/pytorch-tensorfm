@@ -1,0 +1,6 @@
+unknown = 'unknown'
+missing = 'missing'
+label = 'label'
+value2index_json = '.value2index.json'
+index2value_json = '.index2value.json'
+frequent_values_pkl = '.frequent_values.pkl'

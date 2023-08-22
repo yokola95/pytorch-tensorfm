@@ -46,7 +46,7 @@ def get_dataset(name, path):
     elif name == 'avazu':
         return AvazuDataset(path)
     elif name == 'dummy':
-        return DummyDataset(path, header=0)
+        return DummyDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
 
@@ -70,7 +70,7 @@ def get_model(name, dataset):
     elif name == 'fwfm':
         return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.5 * num_columns))
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.2 * num_columns))
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':

@@ -1,10 +1,15 @@
 import pickle
 import json
+from typing import Sequence
+
 import numpy as np
 import pandas as pd
 import torch
 from math import floor, log
 from pandas.api.types import is_numeric_dtype
+
+from torchfm.torch_utils.constants import *
+
 
 print(torch.__version__)
 
@@ -15,12 +20,6 @@ else:
 
 
 # data_file = "../persistent_drive/data/train20K.txt"  # Replace with the actual path to your dataset file
-unknown = 'unknown'
-missing = 'missing'
-label = 'label'
-value2index_json = '.value2index.json'
-index2value_json = '.index2value.json'
-frequent_values_pkl = '.frequent_values.pkl'
 
 
 class CriteoParsing:
@@ -39,12 +38,28 @@ class CriteoParsing:
     def __init__(self, base_path):
         self.data_file = base_path   # base path
 
-    def read_dataset(self, data_file_path):
+    def read_dataset_orig(self, data_file_path):  # no header
         df = pd.read_csv(data_file_path, sep='\t', names=self.columns)
         return df
 
+    def read_dataset(self, data_file_path):       # with header
+        df = pd.read_csv(data_file_path, sep='\t', header='infer')
+        return df
+
     def save_dataset(self, df, save_file_path):
-        df.to_csv(save_file_path, header=True, index=False)
+        df.to_csv(save_file_path, sep='\t', header=True, index=False)
+
+    def split_to_datasets_save(self, data_file_path: str, lengths: Sequence[int], save_paths: Sequence[str]):
+        df = self.read_dataset_orig(data_file_path)
+        np.random.seed(123)
+        perm = np.random.permutation(df.index)
+        assert len(df.index) == np.sum(lengths)
+
+        start_ind = 0
+        for (df_length, save_path) in zip(lengths, save_paths):
+            curr_df = df.iloc[perm[start_ind:start_ind+df_length-1]]
+            self.save_dataset(curr_df, save_path)
+            start_ind += df_length
 
     # Function to load frequent values from a file
     def load_frequent_values(self):
@@ -69,7 +84,7 @@ class CriteoParsing:
                 # Create a set of values that appear at least the threshold times
                 frequent_values[col] = set(value_counts[value_counts >= self.threshold].index)
 
-        self.save_frequent_values(self, frequent_values)
+        self.save_frequent_values(frequent_values)
 
     # Function to replace infrequent values in each column with a default value
     def replace_infrequent_with_default(self, df, frequent_values):
@@ -193,3 +208,32 @@ class CriteoParsing:
         new_df = self.index_df(df)  # change
 
         self.save_dataset(new_df, save_to_path)
+
+    def split(self):
+        train_validation_test_paths = ['../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_test.txt']
+        input_datatset_path = '../torchfm/test-datasets/train100K.txt'
+        data_len = 100000
+        train_validation_test_sizes = [int(0.8 * data_len), int(0.1 * data_len), int(0.1 * data_len)]
+        self.split_to_datasets_save(input_datatset_path, train_validation_test_sizes, train_validation_test_paths)
+
+    def fit(self):
+        self.fit('../torchfm/test-datasets/train100K_train.txt')
+
+    def transform(self):
+        self.transform('../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_train_preprocessed.txt')
+        self.transform('../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt')
+        self.transform('../torchfm/test-datasets/train100K_test.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt')
+
+
+    @staticmethod
+    def do_action(actionStr):
+        criteo_parsing = CriteoParsing('../torchfm/test-datasets/tmp_res/tmp')
+
+        if actionStr == "split":
+            criteo_parsing.split()
+        elif actionStr == "fit":
+            criteo_parsing.fit()
+        elif actionStr == "transform":
+            criteo_parsing.transform()
+        else:
+            raise ValueError('unknown action name: ' + actionStr)

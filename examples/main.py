@@ -37,7 +37,7 @@ def test(model, data_loader, device):
 
 
 def main(dataset_name,
-         dataset_path,
+         dataset_paths,
          model_name,
          epoch,
          learning_rate,
@@ -48,16 +48,14 @@ def main(dataset_name,
          save_dir):
     num_workers = 1
     device = torch.device(device)
-    dataset = get_dataset(dataset_name, dataset_path)
-    train_length = int(len(dataset) * 0.8)
-    valid_length = int(len(dataset) * 0.1)
-    test_length = len(dataset) - train_length - valid_length
-    train_dataset, valid_dataset, test_dataset = torch.utils.data.random_split(
-        dataset, (train_length, valid_length, test_length))
+    train_dataset = get_dataset(dataset_name, dataset_paths[0])
+    valid_dataset = get_dataset(dataset_name, dataset_paths[1])
+    test_dataset = get_dataset(dataset_name, dataset_paths[2])
+
     train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers)
     valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers)
     test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers)
-    model = get_model(model_name, dataset).to(device)
+    model = get_model(model_name, train_dataset).to(device)
     criterion = get_criterion(criterion)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     early_stopper = EarlyStopper(num_trials=epoch, save_path=f'{save_dir}/{model_name}.pt')
@@ -70,13 +68,17 @@ def main(dataset_name,
         if not early_stopper.is_continuable(model, optimizer, mse):
             print(f'validation: best error: {early_stopper.best_error}')
             break
-    auc = test(model, test_data_loader, device)
-    print(f'test error: {mse}')
+    test_mse = test(model, test_data_loader, device)
+    print(f'test error: {test_mse}')
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    main('dummy', '../torchfm/test-datasets/dummy.txt', 'fwfm', 5, 0.01, 10, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
+    main('dummy', ['../torchfm/test-datasets/train100K_train_preprocessed.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt'], 'lowrank_fwfm', 10, 0.01, 100, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
+
+    #from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
+    #CriteoParsing.do_action("transform")
+
 
 
 # if __name__ == '__main__':
