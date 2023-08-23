@@ -3,7 +3,7 @@ import torch
 from torchfm.dataset.avazu import AvazuDataset
 from torchfm.dataset.criteo import CriteoDataset
 from torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
-from torchfm.dataset.dummy_dataset import DummyDataset
+from torchfm.dataset.wrapper_dataset import WrapperDataset
 from torchfm.model.afi import AutomaticFeatureInteractionModel
 from torchfm.model.afm import AttentionalFactorizationMachineModel
 from torchfm.model.dcn import DeepCrossNetworkModel
@@ -22,6 +22,7 @@ from torchfm.model.xdfm import ExtremeDeepFactorizationMachineModel
 from torchfm.model.afn import AdaptiveFactorizationNetwork
 from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel
 from torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
+
 
 def get_criterion(criterion):
     if criterion == 'bceloss':
@@ -45,8 +46,8 @@ def get_dataset(name, path):
         return CriteoDataset(path)
     elif name == 'avazu':
         return AvazuDataset(path)
-    elif name == 'dummy':
-        return DummyDataset(path)
+    elif name == 'wrapper':
+        return WrapperDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
 
@@ -70,7 +71,7 @@ def get_model(name, dataset):
     elif name == 'fwfm':
         return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.2 * num_columns))
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.1 * num_columns))
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -134,3 +135,8 @@ class EarlyStopper(object):
             return True
         else:
             return False
+
+
+def sigmoid(x):
+    x = np.asarray(x)
+    return 1 / (1 + np.exp(-x))

@@ -5,7 +5,7 @@ import torch.utils.data
 from torchfm.torch_utils.constants import *
 
 
-class DummyDataset(torch.utils.data.Dataset):
+class WrapperDataset(torch.utils.data.Dataset):
     """
     Dummy Dataset
 

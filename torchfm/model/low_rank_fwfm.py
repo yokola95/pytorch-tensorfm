@@ -30,6 +30,6 @@ class LowRankFieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizati
         P = torch.matmul(self.U, emb)                                                  # (batch_size, c, embedding_dim)
         diag_d = self._calc_diag_d()                                                   # (num_fields)
 
-        term1 = (torch.pow(emb, 2).sum(-1) * diag_d).sum(1)                            # (batch_size) <- (batch_size, num_fields) * (num_fields).sum(1)
+        term1 = (torch.pow(emb, 2).sum(-1) * diag_d).sum(1)   # .sum(-1)                            # (batch_size) <- (batch_size, num_fields) * (num_fields).sum(1)
         term2 = (torch.pow(P, 2).sum(-1) * self.diag_e).sum(1)                         # (batch_size) <- (batch_size, c) * (c).sum(1)
         return (term1 + term2) / 2                                                     # (batch_size, 1)

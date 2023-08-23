@@ -1,14 +1,20 @@
 import torch
 import tqdm
-from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error
+from sklearn.metrics import roc_auc_score, accuracy_score, mean_squared_error, log_loss
 from torch.utils.data import DataLoader
+import numpy as np
+
+from torchfm.torch_utils.constants import test_datasets_path, tmp_save_dir, wrapper, default_base_filename
+from torchfm.torch_utils.io_utils import get_train_validation_test_preprocessed_paths
 from torchfm.torch_utils.utils import *
 import time
 
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
+    ctr_loss_f = torch.nn.BCELoss()
     model.train()
     total_loss = 0
+    total_ctr_loss = 0
     tk0 = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
     for i, (fields, target) in enumerate(tk0):
         fields, target = fields.to(device), target.to(device)
@@ -18,13 +24,18 @@ def train(model, optimizer, data_loader, criterion, device, log_interval=100):
         model.zero_grad()
         loss.backward()
         optimizer.step()
+
+        target_ctr = np.sum(target.float().tolist())/len(target.tolist())
+        total_ctr_loss += ctr_loss_f(torch.tensor(np.full(target.size(dim=0), target_ctr)).float(), target.float()).item()    # global train ctr 0.22711533894173677
+
         total_loss += loss.item()
         if (i + 1) % log_interval == 0:
-            tk0.set_postfix(loss=total_loss / log_interval)
+            tk0.set_postfix(loss=total_loss / log_interval, ctr_loss=total_ctr_loss / log_interval)
             total_loss = 0
+            total_ctr_loss = 0
 
 
-def test(model, data_loader, device):
+def test(model, data_loader, criterion, device):
     model.eval()
     targets, predicts = list(), list()
     with torch.no_grad():
@@ -33,7 +44,7 @@ def test(model, data_loader, device):
             y = model(fields)
             targets.extend(target.tolist())
             predicts.extend(y.tolist())
-    return mean_squared_error(targets, predicts)  # roc_auc_score
+    return criterion(torch.tensor(predicts), torch.tensor(targets).float()).item()      #log_loss(targets, sigmoid(predicts))  # roc_auc_score
 
 
 def main(dataset_name,
@@ -59,26 +70,28 @@ def main(dataset_name,
     criterion = get_criterion(criterion)
     optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     early_stopper = EarlyStopper(num_trials=epoch, save_path=f'{save_dir}/{model_name}.pt')
+
     for epoch_i in range(epoch):
         start = time.time()
         train(model, optimizer, train_data_loader, criterion, device)
         end = time.time()
-        mse = test(model, valid_data_loader, device)
-        print('epoch:', epoch_i, 'validation: mse:', mse, "train time:", end-start)
-        if not early_stopper.is_continuable(model, optimizer, mse):
+        err = test(model, valid_data_loader, criterion, device)
+        print('epoch:', epoch_i, 'validation error:', err, "train time:", end-start)
+        if not early_stopper.is_continuable(model, optimizer, err):
             print(f'validation: best error: {early_stopper.best_error}')
             break
-    test_mse = test(model, test_data_loader, device)
-    print(f'test error: {test_mse}')
+    test_err = test(model, test_data_loader, criterion, device)
+    print(f'test error: {test_err}')
 
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    main('dummy', ['../torchfm/test-datasets/train100K_train_preprocessed.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt'], 'lowrank_fwfm', 10, 0.01, 100, 'bcelogitloss', 1e-6, device, '../tmp_save_dir')
+    train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+    main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
 
+# lowrank_fwfm
     #from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
     #CriteoParsing.do_action("transform")
-
 
 
 # if __name__ == '__main__':

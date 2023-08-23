@@ -47,7 +47,7 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
 
 class Symmetric(nn.Module):
     def forward(self, x):
-        return x.triu() + x.triu(1).transpose(-1, -2)
+        return x.triu(1) + x.triu(1).transpose(-1, -2)   # 0 diagonal, no need to remove diagonal in the code
 
 
 class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
@@ -73,7 +73,7 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
     def _get_field_inter_weight(self, i, j):
         return self.field_inter_weights[i][j]
 
-    def _get_fixed_field_inter_weights(self):
+    def _get_fixed_field_inter_weights(self):  ### todo: remove???
         return torch.sub(self.field_inter_weights, torch.diagflat(torch.diag(self.field_inter_weights)))
 
     def _calc_factorization_interactions_nested_loops(self, emb):

@@ -8,8 +8,9 @@ import torch
 from math import floor, log
 from pandas.api.types import is_numeric_dtype
 
+from torchfm.dataset.wrapper_dataset import WrapperDataset
 from torchfm.torch_utils.constants import *
-
+from torchfm.torch_utils.io_utils import get_train_validation_test_paths, get_train_validation_test_preprocessed_paths
 
 print(torch.__version__)
 
@@ -17,9 +18,6 @@ if torch.cuda.is_available():
     print("CUDA is available. Version:", torch.version.cuda)
 else:
     print("CUDA is not available.")
-
-
-# data_file = "../persistent_drive/data/train20K.txt"  # Replace with the actual path to your dataset file
 
 
 class CriteoParsing:
@@ -93,13 +91,13 @@ class CriteoParsing:
                 # Replace values with the default value based on the frequent values
                 mask = (df[col].notnull()) & (~df[col].isin(frequent_values[col]))
                 df.loc[mask, col] = self.default_value  # + col
-                df[col].fillna('SP_NaN', inplace=True)
+                df[col].fillna(missing, inplace=True)    # 'SP_NaN'
 
     def replace_numeric_with_bins(self, df):
         # Function to apply the custom transformation
         def numeric_transform(x):
             if np.isnan(x):
-                return 'SP_NaN'
+                return missing  # 'SP_NaN'
             elif x <= 1:
                 return f'SP_{x:.0f}'
             else:
@@ -136,8 +134,9 @@ class CriteoParsing:
 
     def calc_index_value_mapping_from_column(self, column, offset):
         unique_values = column.unique()
-        value_index_mapping = {unknown: offset, missing: offset + 1}
-        value_index_mapping.update({value: offset + index + 2 for index, value in enumerate(unique_values)})
+        unique_values_fixed = [val for val in unique_values if val not in (self.default_value, missing)]
+        value_index_mapping = {self.default_value: offset, missing: offset + 1}
+        value_index_mapping.update({value: offset + index + 2 for index, value in enumerate(unique_values_fixed)})
 
         return value_index_mapping
 
@@ -145,13 +144,12 @@ class CriteoParsing:
         def map_val_to_ind(x):
             if x in value_index_mapping:
                 return value_index_mapping[x]
-            elif (is_numeric_dtype(column) and np.isnan(x)) or (x is None):
+            elif (x is None) or (x == ''):    # (is_numeric_dtype(column) and np.isnan(x)) or
                 return value_index_mapping[missing]
             else:
-                return value_index_mapping[unknown]
+                return value_index_mapping[self.default_value]
 
-        #new_column = column.map(value_index_mapping)
-        new_column = column.map(map_val_to_ind)
+        new_column = column.map(map_val_to_ind)   # new_column = column.map(value_index_mapping)
         return new_column
 
     def calc_save_global_index_value_mapping(self, dataframe):
@@ -184,19 +182,7 @@ class CriteoParsing:
 
         return new_dataframe
 
-    def fit(self, train_dataset_path):
-        df = self.read_dataset(train_dataset_path)
-
-        # df.describe(include=(np.number))
-        # df.describe(include=[object])
-
-        self.calc_save_frequent_values(df)
-        frequent_values = self.load_frequent_values()
-        self.replace_infrequent_with_default(df, frequent_values)
-        self.replace_numeric_with_bins(df)
-        self.calc_save_global_index_value_mapping(df)
-
-    def transform(self, dataset_path, save_to_path):
+    def _transform(self, dataset_path, save_to_path):
         df = self.read_dataset(dataset_path)
 
         # Load the frequent values from the file
@@ -210,30 +196,57 @@ class CriteoParsing:
         self.save_dataset(new_df, save_to_path)
 
     def split(self):
-        train_validation_test_paths = ['../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_test.txt']
-        input_datatset_path = '../torchfm/test-datasets/train100K.txt'
+        split_to_paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)
         data_len = 100000
         train_validation_test_sizes = [int(0.8 * data_len), int(0.1 * data_len), int(0.1 * data_len)]
-        self.split_to_datasets_save(input_datatset_path, train_validation_test_sizes, train_validation_test_paths)
+        self.split_to_datasets_save(original_input_file_path, train_validation_test_sizes, split_to_paths)
 
     def fit(self):
-        self.fit('../torchfm/test-datasets/train100K_train.txt')
+        paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)
+        train_dataset_path = paths[0]   # 0 index file to train  '../torchfm/test-datasets/train100K_train.txt'
+
+        df = self.read_dataset(train_dataset_path)
+        self.calc_save_frequent_values(df)
+        frequent_values = self.load_frequent_values()
+        self.replace_infrequent_with_default(df, frequent_values)
+        self.replace_numeric_with_bins(df)
+        self.calc_save_global_index_value_mapping(df)
 
     def transform(self):
-        self.transform('../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_train_preprocessed.txt')
-        self.transform('../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt')
-        self.transform('../torchfm/test-datasets/train100K_test.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt')
+        from_files = get_train_validation_test_paths(test_datasets_path, default_base_filename)
+        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+        assert len(from_files) == len(to_files)
+
+        for ind in range(len(from_files)):
+            self._transform(from_files[ind], to_files[ind])
+
+        #self.transform('../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_train_preprocessed.txt')
+        #self.transform('../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt')
+        #self.transform('../torchfm/test-datasets/train100K_test.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt')
 
 
     @staticmethod
-    def do_action(actionStr):
-        criteo_parsing = CriteoParsing('../torchfm/test-datasets/tmp_res/tmp')
+    def do_action(action_str):
+        criteo_parsing = CriteoParsing('{}/tmp_res/tmp'.format(test_datasets_path))
 
-        if actionStr == "split":
+        if action_str == "split":
             criteo_parsing.split()
-        elif actionStr == "fit":
+        elif action_str == "fit":
             criteo_parsing.fit()
-        elif actionStr == "transform":
+        elif action_str == "transform":
             criteo_parsing.transform()
         else:
-            raise ValueError('unknown action name: ' + actionStr)
+            raise ValueError('unknown action name: ' + action_str)
+
+    def get_ctr(self, ind):
+        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+        res = []
+        for path in to_files:
+            wrapper = WrapperDataset(path)
+            ctr = sum(wrapper.targets) / len(wrapper.targets)
+            res.append(ctr)
+        return res[ind]
+
+
+
+
