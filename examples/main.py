@@ -87,7 +87,7 @@ def main(dataset_name,
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-    main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
+    main(wrapper, train_valid_test_paths, 'fwfm', 20, 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
 
 # lowrank_fwfm
     #from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
