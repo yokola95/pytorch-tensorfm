@@ -137,6 +137,23 @@ class EarlyStopper(object):
             return False
 
 
-def sigmoid(x):
-    x = np.asarray(x)
-    return 1 / (1 + np.exp(-x))
+class LossCalc:
+    total_loss = 0
+    total_ctr_loss = 0     # loss w.r.t. ctr prediction on data
+    total_half_loss = 0    # loss w.r.t. constant 1/2 prediction
+
+    def __init__(self, total_loss, total_ctr_loss, total_half_loss):
+        self.total_loss = total_loss
+        self.total_ctr_loss = total_ctr_loss
+        self.total_half_loss = total_half_loss
+
+    def add(self, total_loss, total_ctr_loss, total_half_loss):
+        self.total_loss += total_loss
+        self.total_ctr_loss += total_ctr_loss
+        self.total_half_loss += total_half_loss
+
+    def remove_results(self):
+        self.total_loss = 0
+        self.total_ctr_loss = 0
+        self.total_half_loss = 0
+

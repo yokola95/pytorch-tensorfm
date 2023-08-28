@@ -21,4 +21,4 @@ default_base_filename = 'train100K'
 
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
 
-# data_file = "../persistent_drive/data/train20K.txt"
+# data_file = "../persistent_drive/data/train100K.txt"
