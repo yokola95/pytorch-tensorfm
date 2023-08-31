@@ -11,6 +11,7 @@ from pandas.api.types import is_numeric_dtype
 from torchfm.dataset.wrapper_dataset import WrapperDataset
 from torchfm.torch_utils.constants import *
 from torchfm.torch_utils.io_utils import get_train_validation_test_paths, get_train_validation_test_preprocessed_paths
+from torchfm.torch_utils.utils import get_absolute_sizes
 
 print(torch.__version__)
 
@@ -47,15 +48,19 @@ class CriteoParsing:
     def save_dataset(self, df, save_file_path):
         df.to_csv(save_file_path, sep='\t', header=True, index=False)
 
-    def split_to_datasets_save(self, data_file_path: str, lengths: Sequence[int], save_paths: Sequence[str]):
+    def split_to_datasets_save(self, data_file_path: str, rel_sizes: Sequence[int], save_paths: Sequence[str]):
         df = self.read_dataset_orig(data_file_path)
+        total_len = len(df.index)
+
         np.random.seed(123)
         perm = np.random.permutation(df.index)
-        assert len(df.index) == np.sum(lengths)
+
+        lengths = get_absolute_sizes(total_len, rel_sizes)
 
         start_ind = 0
         for (df_length, save_path) in zip(lengths, save_paths):
-            curr_df = df.iloc[perm[start_ind:start_ind+df_length-1]]
+            curr_df = df.iloc[perm[start_ind:start_ind+df_length]]
+            assert len(curr_df.index) == df_length
             self.save_dataset(curr_df, save_path)
             start_ind += df_length
 
@@ -197,9 +202,8 @@ class CriteoParsing:
 
     def split(self):
         split_to_paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)
-        data_len = 100000
-        train_validation_test_sizes = [int(0.8 * data_len), int(0.1 * data_len), int(0.1 * data_len)]
-        self.split_to_datasets_save(original_input_file_path, train_validation_test_sizes, split_to_paths)
+        train_validation_test_rel_sizes = [0.8, 0.1, 0.1]
+        self.split_to_datasets_save(original_input_file_path, train_validation_test_rel_sizes, split_to_paths)
 
     def fit(self):
         paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)

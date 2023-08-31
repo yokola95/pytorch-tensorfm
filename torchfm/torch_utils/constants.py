@@ -12,6 +12,8 @@ train = "train"
 validation = "validation"
 test = "test"
 
+debug_print = False
+
 base_path_project = ".."
 path_torchfm = "{}/torchfm".format(base_path_project)
 test_datasets_path = "{}/test-datasets".format(path_torchfm)

@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 from torchfm.dataset.avazu import AvazuDataset
@@ -22,6 +23,23 @@ from torchfm.model.xdfm import ExtremeDeepFactorizationMachineModel
 from torchfm.model.afn import AdaptiveFactorizationNetwork
 from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel
 from torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
+from torchfm.torch_utils.constants import *
+
+
+def print_msg(*args):
+    if debug_print:
+        print(args)
+
+
+def get_optimizer(opt_name, parameters, learning_rate, weight_decay=0):
+    if opt_name == "adam":
+        return torch.optim.Adam(params=parameters, lr=learning_rate, weight_decay=weight_decay)
+    elif opt_name == "adagrad":
+        return torch.optim.Adagrad(params=parameters, lr=learning_rate, weight_decay=weight_decay)
+    elif opt_name == "sgd":
+        return torch.optim.SGD(params=parameters, lr=learning_rate, weight_decay=weight_decay)
+    else:
+        raise ValueError('unknown optimizer name: ' + opt_name)
 
 
 def get_criterion(criterion):
@@ -71,7 +89,7 @@ def get_model(name, dataset):
     elif name == 'fwfm':
         return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.1 * num_columns))
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.2 * num_columns))
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -108,6 +126,23 @@ def get_model(name, dataset):
             num_features, embed_dim=16, LNN_dim=1500, mlp_dims=(400, 400, 400), dropouts=(0, 0, 0))
     else:
         raise ValueError('unknown model name: ' + name)
+
+
+def get_baselines_log_loss(targets):
+    log_loss = torch.nn.BCELoss()
+    targets_ctr = torch.sum(targets) / targets.size(dim=0)
+    ctr_loss = log_loss(torch.ones_like(targets) * targets_ctr.item(), targets).item()  # global train ctr 0.22711533894173677
+    half_loss = log_loss((torch.ones_like(targets) * 0.5).float(), targets).item()
+
+    return ctr_loss, half_loss
+
+
+def get_absolute_sizes(total_len, rel_sizes):
+    assert np.sum(rel_sizes) == 1.0
+    absolute_sizes = [round(rel * total_len) for rel in rel_sizes[:-1]]
+    absolute_sizes.append(total_len - np.sum(absolute_sizes))
+    assert total_len == np.sum(absolute_sizes)
+    return absolute_sizes
 
 
 class EarlyStopper(object):
@@ -156,4 +191,3 @@ class LossCalc:
         self.total_loss = 0
         self.total_ctr_loss = 0
         self.total_half_loss = 0
-

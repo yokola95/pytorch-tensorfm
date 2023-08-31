@@ -1,54 +1,51 @@
 import tqdm
 from torch.utils.data import DataLoader
-import numpy as np
 
-from torchfm.torch_utils.constants import test_datasets_path, tmp_save_dir, wrapper, default_base_filename, \
-    base_path_project
+from torchfm.torch_utils.constants import test_datasets_path, tmp_save_dir, wrapper, default_base_filename
 from torchfm.torch_utils.io_utils import get_train_validation_test_preprocessed_paths
 from torchfm.torch_utils.utils import *
 import time
+import optuna
 
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
-    log_loss_f = torch.nn.BCELoss()
     model.train()
-    loss_calc = LossCalc(0, 0, 0)
-
-    tk0 = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
-    for i, (fields, target) in enumerate(tk0):
-        fields, target = fields.to(device), target.to(device)
-        target = target.float()
+    total_loss = 0.0
+    #tk0 = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
+    for fields, target in data_loader:   #enumerate(tk0):  i,
+        fields, target = fields.to(device), target.float().to(device)
         y = model(fields)
         loss = criterion(y, target)
         model.zero_grad()
         loss.backward()
         optimizer.step()
 
-        target_ctr = np.sum(target.tolist())/len(target.tolist())
-        total_loss = loss.item()
-        total_ctr_loss = log_loss_f(torch.tensor(np.full(target.size(dim=0), target_ctr)).float(), target).item()    # global train ctr 0.22711533894173677
-        total_half_loss = log_loss_f(torch.tensor(np.full(target.size(dim=0), 0.5)).float(), target).item()
-        loss_calc.add(total_loss, total_ctr_loss, total_half_loss)
-        if (i + 1) % log_interval == 0:
-            tk0.set_postfix(loss=loss_calc.total_loss / log_interval, ctr_loss=loss_calc.total_ctr_loss / log_interval, half_loss=loss_calc.total_half_loss)
-            loss_calc.remove_results()
+        # total_loss += loss.item()
+        # if (i + 1) % log_interval == 0:
+            # tk0.set_postfix(loss=total_loss / log_interval)
+            # total_loss = 0.0
 
 
 def test(model, data_loader, criterion, device):
     model.eval()
-    targets, predicts = list(), list()
+    targets, predicts = [], []
     with torch.no_grad():
         for fields, target in tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0):
-            fields, target = fields.to(device), target.to(device)
+            fields, target = fields.to(device), target.float().to(device)
             y = model(fields)
-            targets.extend(target.tolist())
-            predicts.extend(y.tolist())
-    return criterion(torch.tensor(predicts), torch.tensor(targets).float()).item()      #log_loss(targets, sigmoid(predicts))  # roc_auc_score
+            targets.append(target)    # list of tensors
+            predicts.append(y)        # list of tensors
+
+    all_predicts = torch.cat(predicts)
+    all_targets = torch.cat(targets)
+    loss = criterion(all_predicts, all_targets).item()
+    ctr_loss, half_loss = get_baselines_log_loss(all_targets)
+
+    return loss, ctr_loss, half_loss
 
 
-def main(dataset_name, dataset_paths, model_name, epoch, learning_rate, batch_size, criterion, weight_decay,
-         device, save_dir):
-    num_workers = 1
+def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, criterion, weight_decay, device, save_dir, trial=None):
+    num_workers = 0
     device = torch.device(device)
     train_dataset = get_dataset(dataset_name, dataset_paths[0])
     valid_dataset = get_dataset(dataset_name, dataset_paths[1])
@@ -59,30 +56,45 @@ def main(dataset_name, dataset_paths, model_name, epoch, learning_rate, batch_si
     test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers)
     model = get_model(model_name, train_dataset).to(device)
     criterion = get_criterion(criterion)
-    optimizer = torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
-    early_stopper = EarlyStopper(num_trials=epoch, save_path=f'{save_dir}/{model_name}.pt')
+    optimizer = get_optimizer(opt_name, model.parameters(), learning_rate, weight_decay)  # torch.optim.Adam(params=model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+    #early_stopper = EarlyStopper(num_trials=epoch, save_path=f'{save_dir}/{model_name}.pt')
 
     for epoch_i in range(epoch):
         start = time.time()
         train(model, optimizer, train_data_loader, criterion, device)
         end = time.time()
-        err = test(model, valid_data_loader, criterion, device)
-        print('epoch:', epoch_i, 'validation error:', err, "train time:", end-start)
-        if not early_stopper.is_continuable(model, optimizer, err):
-            print(f'validation: best error: {early_stopper.best_error}')
-            break
-    test_err = test(model, test_data_loader, criterion, device)
-    print(f'test error: {test_err}')
+        valid_err, _, _ = test(model, valid_data_loader, criterion, device)
+
+        # Handle pruning based on the intermediate value.
+        if trial is not None:
+            trial.report(valid_err, epoch_i)
+            if trial.should_prune():
+                raise optuna.exceptions.TrialPruned()
+
+        print_msg('epoch:', epoch_i, 'validation error:', valid_err, "train time:", end-start)
+        #if not early_stopper.is_continuable(model, optimizer, valid_err):
+        #    print(f'validation: best error: {early_stopper.best_error}')
+        #    break
+    test_err, ctr_err, half_err = test(model, test_data_loader, criterion, device)
+    print_msg(f'test error: {test_err}, ctr error: {ctr_err}, 1/2 prediction error: {half_err}')
+    return test_err
 
 
-if __name__ == '__main__':
+def top_main_for_optuna_call(opt_name, learning_rate, trial):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-    main(wrapper, train_valid_test_paths, 'fwfm', 20, 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
+    err = main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, opt_name, learning_rate, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir, trial)
+    return err
 
-# lowrank_fwfm
+
+# if __name__ == '__main__':
+#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+#     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+#     main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, "adagrad", 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
+
+
     #from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
-    #CriteoParsing.do_action("transform")
+    #CriteoParsing.do_action("split")
 
 
 # if __name__ == '__main__':

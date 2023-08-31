@@ -1,13 +1,5 @@
-# import torch
-import numpy as np
-import tarfile
-import gzip
 import os
-import pandas as pd
-
 from torchfm.torch_utils.constants import *
-
-# print(torch.__version__)
 
 
 def get_train_validation_test_preprocessed_paths(base_path, base_filename):
