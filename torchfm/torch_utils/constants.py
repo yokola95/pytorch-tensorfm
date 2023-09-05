@@ -13,6 +13,9 @@ validation = "validation"
 test = "test"
 
 debug_print = False
+sparseGrads = True
+epochs_num = 5
+batch_size = 100
 
 base_path_project = ".."
 path_torchfm = "{}/torchfm".format(base_path_project)
@@ -23,4 +26,5 @@ default_base_filename = 'train100K'
 
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
 
+save_optuna_results_file = f"{tmp_save_dir}/optuna_results.txt"
 # data_file = "../persistent_drive/data/train100K.txt"

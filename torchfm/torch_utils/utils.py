@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
 
 from torchfm.dataset.avazu import AvazuDataset
 from torchfm.dataset.criteo import CriteoDataset
@@ -34,6 +35,8 @@ def print_msg(*args):
 def get_optimizer(opt_name, parameters, learning_rate, weight_decay=0):
     if opt_name == "adam":
         return torch.optim.Adam(params=parameters, lr=learning_rate, weight_decay=weight_decay)
+    elif opt_name == "sparseadam":
+        return torch.optim.SparseAdam(params=parameters, lr=learning_rate)
     elif opt_name == "adagrad":
         return torch.optim.Adagrad(params=parameters, lr=learning_rate, weight_decay=weight_decay)
     elif opt_name == "sgd":
@@ -68,6 +71,20 @@ def get_dataset(name, path):
         return WrapperDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
+
+
+def get_datasets(dataset_name, dataset_paths):
+    train_dataset = get_dataset(dataset_name, dataset_paths[0])
+    valid_dataset = get_dataset(dataset_name, dataset_paths[1])
+    test_dataset = get_dataset(dataset_name, dataset_paths[2])
+    return train_dataset, valid_dataset, test_dataset
+
+
+def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers):
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
+    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
+    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
+    return train_data_loader, valid_data_loader, test_data_loader
 
 
 def get_model(name, dataset):

@@ -5,6 +5,8 @@ import torch.nn as nn
 import torch.nn.utils.parametrize as parametrize
 import numpy as np
 
+from torchfm.torch_utils.constants import sparseGrads
+
 
 class BaseFieldWeightedFactorizationMachineModel(nn.Module):
     def __init__(self, num_features, embed_dim, num_fields):
@@ -16,9 +18,9 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
         self.num_fields = num_fields                    # length of X
 
         self.w0 = nn.Parameter(torch.zeros(1))          # w0 global bias
-        self.bias = nn.Embedding(self.num_features, 1)  # biases w: for every field 1 dimension embedding (num_features, 1)
+        self.bias = nn.Embedding(self.num_features, 1, sparse=sparseGrads)  # biases w: for every field 1 dimension embedding (num_features, 1)
 
-        self.embeddings = nn.Embedding(self.num_features, embed_dim)  # embedding vectors V: (num_features, embedding_dim)
+        self.embeddings = nn.Embedding(self.num_features, embed_dim, sparse=sparseGrads)  # embedding vectors V: (num_features, embedding_dim)
 
         with torch.no_grad():
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
