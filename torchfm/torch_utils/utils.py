@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from torchmetrics.classification import accuracy, auroc, f_beta
 
 from torchfm.dataset.avazu import AvazuDataset
 from torchfm.dataset.criteo import CriteoDataset
@@ -104,9 +105,9 @@ def get_model(name, dataset):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, topk=round(top_k_percent * num_columns))
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(0.2 * num_columns))
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(top_k_percent * num_columns))
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -162,6 +163,22 @@ def get_absolute_sizes(total_len, rel_sizes):
     return absolute_sizes
 
 
+def load_model(model_name, dataset, path):
+    model = get_model(model_name, dataset=dataset)
+
+    model.load_state_dict(torch.load(f'{tmp_save_dir}/{model_name}.pt'))
+    checkpoint = torch.load(path)
+    epoch_num = checkpoint['epoch']
+    learning_rate = checkpoint['lr']
+    opt_name = checkpoint['opt_name']
+    model.eval()
+    return model
+
+
+def save_model(model, model_name, epoch_num, optimizer, learning_rate, opt_name, loss):
+    torch.save({'epoch': epoch_num, 'lr': learning_rate, 'opt_name': opt_name, 'loss': loss, 'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict()}, f'{tmp_save_dir}/{model_name}.pt')
+
+
 class EarlyStopper(object):
 
     def __init__(self, num_trials, save_path):
@@ -175,12 +192,7 @@ class EarlyStopper(object):
             self.best_error = error
             self.trial_counter = 0
             # torch.save(model, self.save_path)
-            torch.save({
-                'epoch': self.trial_counter,
-                'model_state_dict': model.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'error': error
-            }, self.save_path)
+            save_model(model, self.trial_counter, optimizer, error)
             return True
         elif self.trial_counter + 1 < self.num_trials:
             self.trial_counter += 1

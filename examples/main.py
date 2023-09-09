@@ -1,3 +1,4 @@
+import torch
 import tqdm
 
 from torchfm.torch_utils.constants import test_datasets_path, tmp_save_dir, wrapper, default_base_filename
@@ -11,7 +12,7 @@ def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
     total_loss = 0.0
     #tk0 = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
-    for fields, target in data_loader:   #enumerate(tk0):  i,    # pin memory
+    for fields, target in data_loader:   #enumerate(tk0):  i,
         fields, target = fields.to(device), target.float().to(device)
         y = model(fields)
         loss = criterion(y, target)
@@ -29,20 +30,31 @@ def test(model, data_loader, criterion, device):
     model.eval()
     test_loss_sum = torch.zeros(1, device=device)
     test_set_size = 0
+
+    auc = auroc.BinaryAUROC()
+
     with torch.no_grad():
         for fields, target in data_loader:   # tqdm.tqdm(..., smoothing=0, mininterval=1.0):
             fields, target = fields.to(device), target.float().to(device)
             y = model(fields)
             test_loss_sum += criterion(y, target) * target.shape[0]
             test_set_size += target.shape[0]
+            auc.update(y, target)
 
     loss = test_loss_sum.item() / test_set_size
     # ctr_loss, half_loss = get_baselines_log_loss(all_targets) # compute this with sums
+    auc_res = auc.compute()
 
     return loss #, ctr_loss, half_loss
 
 
-def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, criterion, weight_decay, device, save_dir, trial=None):
+def valid_test(model, valid_data_loader, test_data_loader, criterion, device):
+    valid_err = test(model, valid_data_loader, criterion, device)  # , ctr_err, half_err
+    test_err = test(model, test_data_loader, criterion, device)
+    return valid_err, test_err
+
+
+def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, criterion, weight_decay, device, trial=None):
     num_workers = 0
     device = torch.device(device)
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_name, dataset_paths)
@@ -57,7 +69,10 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
         start = time.time()
         train(model, optimizer, train_data_loader, criterion, device)
         end = time.time()
+
+        start_val = time.time()
         valid_err = test(model, valid_data_loader, criterion, device)
+        end_val = time.time()
 
         # Handle pruning based on the intermediate value.
         if trial is not None:
@@ -65,35 +80,48 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
             if trial.should_prune():
                 raise optuna.exceptions.TrialPruned()
 
-        print_msg('epoch:', epoch_i, 'validation error:', valid_err, "train time:", end-start)
+        print_msg('epoch:', epoch_i, 'validation error:', valid_err, "train time:", end-start, "valid. time", end_val-start_val)
         #if not early_stopper.is_continuable(model, optimizer, valid_err):
         #    print(f'validation: best error: {early_stopper.best_error}')
         #    break
-    valid_err = test(model, valid_data_loader, criterion, device)  # , ctr_err, half_err
-    print_msg(f'test error: {valid_err}, ctr error: {ctr_err}, 1/2 prediction error: {half_err}')
+    valid_err, test_err = valid_test(model, valid_data_loader, test_data_loader, criterion, device) # test(model, valid_data_loader, criterion, device)  # , ctr_err, half_err
+    print_msg(f'valid error: {valid_err} test error: {test_err}')   # , ctr error: {ctr_err}, 1/2 prediction error: {half_err}
+
+    if model_name == 'fwfm':
+        test_topk(model, valid_data_loader, test_data_loader, criterion, device)
+
+    save_model(model, model_name + ' ' + (str(trial.number) if trial is not None else "0") + ' ' + opt_name,
+               epoch, criterion, learning_rate, opt_name, valid_err)
+
     return valid_err
 
 
-def top_main_for_optuna_call(opt_name, learning_rate, model_name, trial, device_ind):
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu:0')
+def test_topk(model, valid_data_loader, test_data_loader, criterion, device):
+    model.use_topk = True
+    valid_err, test_err = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
+    print_msg(f'topk valid error: {valid_err} test error: {test_err}')
 
-    if trial is not None:
-        print("trial number  " + str(trial.number))
+
+def top_main_for_optuna_call(opt_name, learning_rate, model_name, trial, device_ind=0):
+    device_str = ('cuda' if torch.cuda.is_available() else 'cpu') + ":" + str(device_ind)
+    device = torch.device(device_str)
+
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-    err = main(wrapper, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, 'bcelogitloss', 0, device, tmp_save_dir, trial)
+    err = main(wrapper, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, 'bcelogitloss', 0, device, trial)
     return err
 
-#res = top_main_for_optuna_call("sparseadam", 0.01, 'fwfm', None)
+#res = top_main_for_optuna_call("adagrad", 0.01, 'fwfm', None)
 #print(res)
+
 
 # if __name__ == '__main__':
 #     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-#     main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, "adagrad", 0.001, 100, 'bcelogitloss', 1e-6, device, tmp_save_dir)
+#     main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, "adagrad", 0.001, 100, 'bcelogitloss', 1e-6, device)
 
 
-    #from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
-    #CriteoParsing.do_action("split")
+# from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
+# CriteoParsing.do_action("transform")
 
 
 # if __name__ == '__main__':
@@ -117,5 +145,4 @@ def top_main_for_optuna_call(opt_name, learning_rate, model_name, trial, device_
 #          args.learning_rate,
 #          args.batch_size,
 #          args.weight_decay,
-#          args.device,
-#          args.save_dir)
+#          args.device)
