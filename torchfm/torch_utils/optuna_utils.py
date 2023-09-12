@@ -1,33 +1,59 @@
 import optuna
 from optuna.trial import TrialState
 
-from torchfm.torch_utils.constants import save_optuna_results_file
+from torchfm.torch_utils.constants import save_optuna_results_file, optuna_journal_log_fwfm, optuna_journal_log_lr_fwfm, optuna_journal_log_pruned_fwfm, fwfm, lowrank_fwfm, pruned_fwfm, sep
 
 
-def get_study_stats(study_obj, mdl_name):
+def get_study_stats(study_obj, trial, mdl_name, metric_top_optimize):
     assert study_obj is not None
+
+    header = "study name,trial_number,model name,metric_to_opt, #finish.trials,#prunned trials, #complete trials,best tr. val, params"
+
     pruned_trials = study_obj.get_trials(deepcopy=False, states=[TrialState.PRUNED])
     complete_trials = study_obj.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
     trial = study_obj.best_trial
 
     str_builder = "\n"
-    str_builder += "Study statistics: "
-    str_builder += f"  Study name: {study_obj.study_name} model name: {mdl_name}\n"
-    str_builder += f"  Number of finished trials:  {len(study_obj.trials)}\n"
-    str_builder += f"  Number of pruned trials:  {len(pruned_trials)}\n"
-    str_builder += f"  Number of complete trials:  {len(complete_trials)}\n"
-
-    str_builder += f"Best trial:\n"
-    str_builder += f"  Value:  {trial.value}\n"
-    str_builder += f"  Params: \n"
+    str_builder += f"{study_obj.study_name}{sep}{trial.number}{mdl_name}{sep}{metric_top_optimize}{sep}"
+    str_builder += f"{len(study_obj.trials)}{sep}"
+    str_builder += f"{len(pruned_trials)}{sep}"
+    str_builder += f"{len(complete_trials)}{sep}"
+    str_builder += f"{trial.value}{sep}"
     for key, value in trial.params.items():
-        str_builder += f"    {key}: {value}\n"
+        str_builder += f"{key}{sep}{value}{sep}"
 
     return str_builder
 
 
-def save_to_file(study, model_name, best_params, best_trial):
-    study_stats = get_study_stats(study, model_name)
+def save_all_args_to_file(*args):
+    str_args = [str(arg) for arg in args]
     with open(save_optuna_results_file, 'a+') as f:
-        f.write(study_stats)
-        f.write(str(best_params) + "\n" + str(best_trial) + "\n\n")
+        str_to_write = sep.join(str_args) + "\n"
+        f.write(str_to_write)
+
+
+def save_to_file(study, model_name, metric_top_optimize, best_params, best_trial):
+    study_stats = get_study_stats(study, best_trial, model_name, metric_top_optimize)
+    save_all_args_to_file(study_stats)
+    # f.write(str(best_params) + "\n" + str(best_trial) + "\n\n")
+
+
+def get_journal_name(model_name):
+    if model_name == fwfm:
+        return optuna_journal_log_fwfm
+    elif model_name == lowrank_fwfm:
+        return optuna_journal_log_lr_fwfm
+    elif model_name == pruned_fwfm:
+        return optuna_journal_log_pruned_fwfm
+    else:
+        raise ValueError(f"No such model name: {model_name}")
+
+
+def erase_content_journal(journal_log):
+    file_to_delete = open(journal_log, 'w')
+    file_to_delete.close()
+
+
+def erase_content_journals():
+    for journal_log in [optuna_journal_log_fwfm, optuna_journal_log_pruned_fwfm, optuna_journal_log_lr_fwfm]:
+        erase_content_journal(journal_log)

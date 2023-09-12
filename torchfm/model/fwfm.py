@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.utils.parametrize as parametrize
 import numpy as np
-
+from torch.nn.modules.module import T
 from torchfm.torch_utils.constants import sparseGrads
 
 
@@ -58,92 +58,19 @@ class Symmetric(nn.Module):
         return x.triu(1) + x.triu(1).transpose(-1, -2)   # zero diagonal and symmetric - due to parametrization no need to remove diagonal in the code
 
 
-class FWFM_topk:
-    _topk = -1
-    _topk_vals = None
-    _topk_indices = None
-    _fwfm_instance = None
-
-    def __init__(self, fwfm):
-        self._fwfm_instance = fwfm
-
-    @property
-    def topk(self):
-        return self._topk
-
-    @topk.setter
-    def topk(self, k):
-        self._topk = k
-
-    def set_top_entries_from_field_inter_weights(self):
-        if self.topk <= 0:
-            self._topk_vals = None
-            self._topk_indices = None
-            return
-
-        input_tensor = torch.abs(self._fwfm_instance.field_inter_weights.triu(1).abs())    # 2D tensor
-        flat_tensor = input_tensor.view(-1)
-        topk_values, topk_indices_flat = torch.topk(flat_tensor, self.topk)  # from 1D tensor
-
-        # Convert the flat indices back to 2D indices
-        topk_indices_2d = torch.tensor([divmod(idx.item(), input_tensor.shape[1]) for idx in topk_indices_flat])
-        # The original values
-        topk_values_original = input_tensor[topk_indices_2d[:, 0], topk_indices_2d[:, 1]]
-
-        self._topk_vals = topk_values_original
-        self._topk_indices = topk_indices_2d
-
-    def calc_factorization_interactions(self, emb):
-        if self.topk <= 0:
-            return 0.0
-
-        factorization_interactions = 0.0
-        for val, ind in zip(self._topk_vals, self._topk_indices):
-            i = ind[0]
-            j = ind[1]
-            inner_prod = torch.sum(emb[..., i, :] * emb[..., j, :], dim=-1)
-            factorization_interactions += val * inner_prod
-
-        return factorization_interactions
-
-
 class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
     __use_tensors_field_interact_calc = True
-    _topk_obj = None
-    _use_topk = False
 
-    def __init__(self, num_features, embed_dim, num_fields, topk):
+    def __init__(self, num_features, embed_dim, num_fields):
         super(FieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
         self.field_inter_weights = self._init_interaction_weights(num_fields)
-        self._topk_obj = FWFM_topk(self)
         parametrize.register_parametrization(self, "field_inter_weights", Symmetric())
-        self.topk = topk
-
-    @property
-    def use_topk(self):
-        return self._use_topk
-
-    @use_topk.setter
-    def use_topk(self, use):
-        self._use_topk = use
-        if self._use_topk:
-            self._topk_obj.set_top_entries_from_field_inter_weights()
-
-    @property
-    def topk(self):
-        return self._topk_obj.topk
-
-    @topk.setter
-    def topk(self, k):
-        self._topk_obj.topk = k
 
     def calc_factorization_interactions(self, emb):              # emb = (batch_size, num_fields, embedding_dim)
-        if self.use_topk:
-            return self._topk_obj.calc_factorization_interactions(emb)
-        elif self.__use_tensors_field_interact_calc:
-            return self._calc_factorization_interactions_tensors(emb)
-        else:
-            return self._calc_factorization_interactions_nested_loops(emb)
+        #if self.__use_tensors_field_interact_calc:
+        return self._calc_factorization_interactions_tensors(emb)
+        #else:
+        #    return self._calc_factorization_interactions_nested_loops(emb)
 
     def _init_interaction_weights(self, num_fields):
         aux = torch.empty(num_fields, num_fields)
@@ -169,3 +96,61 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
         inner_product = (emb_mul_emb_T * self.field_inter_weights).sum([-1, -2])   # inner_product = (batch_size, 1)   # due to parametrization, self.field_inter_weights is zero-diagonal and symmetric matrix of size (num_fields, num_fields)
         return inner_product / 2   # (batch_size, 1)
 
+
+class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMachineModel):
+    _use_topk = False
+    _topk = -1
+    _topk_vals = None
+    _topk_indices = None
+
+    def __init__(self, num_features, embed_dim, num_fields, topk):
+        super(PrunedFieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
+        self._topk = topk
+
+    @property
+    def use_topk(self):
+        return self._use_topk
+
+    @use_topk.setter
+    def use_topk(self, use):
+        if use and use != self._use_topk:
+            self.set_top_entries_from_field_inter_weights()
+        self._use_topk = use
+
+    def set_top_entries_from_field_inter_weights(self):
+        if self._topk <= 0:
+            self._topk_vals = None
+            self._topk_indices = None
+            return
+
+        input_tensor = torch.abs(self.field_inter_weights.triu(1).abs())    # 2D tensor
+        flat_tensor = input_tensor.view(-1)
+        topk_values, topk_indices_flat = torch.topk(flat_tensor, self._topk)  # from 1D tensor
+
+        # Convert the flat indices back to 2D indices
+        topk_indices_2d = torch.tensor([divmod(idx.item(), input_tensor.shape[1]) for idx in topk_indices_flat])
+        # The original values
+        topk_values_original = input_tensor[topk_indices_2d[:, 0], topk_indices_2d[:, 1]]
+
+        self._topk_vals = topk_values_original
+        self._topk_indices = topk_indices_2d
+
+    def calc_factorization_interactions(self, emb):
+        if not self.use_topk:
+            return super(PrunedFieldWeightedFactorizationMachineModel, self).calc_factorization_interactions(emb)
+
+        if self._topk <= 0:
+            return 0.0
+
+        factorization_interactions = 0.0
+        for val, ind in zip(self._topk_vals, self._topk_indices):
+            i = ind[0]
+            j = ind[1]
+            inner_prod = torch.sum(emb[..., i, :] * emb[..., j, :], dim=-1)
+            factorization_interactions += val * inner_prod
+
+        return factorization_interactions
+
+    def train(self: T, mode: bool = True) -> T:
+        super(PrunedFieldWeightedFactorizationMachineModel, self).train(mode)
+        self.use_topk = not mode

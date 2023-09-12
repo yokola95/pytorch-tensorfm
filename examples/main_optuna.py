@@ -1,36 +1,39 @@
+import numpy as np
 import optuna
 from optuna.storages import JournalStorage, JournalFileStorage
 from main import top_main_for_optuna_call
-from torchfm.torch_utils.constants import save_optuna_results_file, optuna_journal_log
-from torchfm.torch_utils.optuna_utils import save_to_file
+from torchfm.torch_utils.constants import optuna_num_trials, fwfm, lowrank_fwfm, pruned_fwfm, logloss
+from torchfm.torch_utils.optuna_utils import save_to_file, get_journal_name, erase_content_journal
+from torchfm.torch_utils.utils import get_from_queue
 
 
-def objective(trial, model_name, device_ind=0):
-    lr = trial.suggest_float('lr', 1e-4, 0.1)
+def objective(study, trial, model_name, device_ind=0, metric_to_optimize="logloss", top_k_rank=5):
+    lr = trial.suggest_float('lr', 1e-4, 0.1, log=True)
     opt_name = trial.suggest_categorical("opt_name", ["adagrad", "sgd"])  # ["adam", "sgd", "adagrad"]
-    # batch_size = trial.suggest_int('batch_size', 100, 1000)
+    # batch_size = trial.suggest_int('batch_size', 100, 500)
 
-    return top_main_for_optuna_call(opt_name, lr, model_name, trial, device_ind)
-
-
-def run_all_for_model(model_name, device_ind):
-    storage = JournalStorage(JournalFileStorage(optuna_journal_log))
-    study = optuna.create_study(study_name=(model_name + " Trial1"), storage=storage)
-    study.optimize(lambda trial: objective(trial, model_name, device_ind), n_trials=1)
-
-    p1, p2 = study.best_params, study.best_trial
-    save_to_file(study, model_name, p1, p2)
-    # allTrials = study.trials
+    return top_main_for_optuna_call(opt_name, lr, model_name, study, trial, device_ind, metric_to_optimize, top_k_rank)
 
 
-#for model_name in ['fwfm', 'lowrank_fwfm']:
-#    run_all_for_model(model_name, 0)
+def run_all_for_model(queue, device_ind):  # (model_name, device_ind, top_k_rank):
+    while True:
+        elm = get_from_queue(queue)
+        if elm is None:
+            return
+
+        model_name = elm[0]
+        metric_top_optimize = elm[1]
+        top_k_rank = elm[2]
+
+        journal_name = get_journal_name(model_name)
+        erase_content_journal(journal_name)
+        storage = JournalStorage(JournalFileStorage(journal_name))
+        study = optuna.create_study(study_name=("Study " + model_name), storage=storage)
+        # metric_top_optimize = logloss
+        study.optimize(lambda trial: objective(study, trial, model_name, device_ind, metric_top_optimize, top_k_rank), n_trials=optuna_num_trials)
+
+        #p1, p2 = study.best_params, study.best_trial
 
 
-# sgd best lr=0.03  valid_err=0.4364890456199646, fwfm
-# sgd best lr=0.03  valid_err=0.43644803762435913, lowrank_fwfm
-
-# adagrad lr=0.01 valid_error=0.4593891501426697, lowrank_fwfm
-# adagrad lr=0.01 valid_error=0.4633690416812897, fwfm
-
-# adagrad  with value: 0.4432646877969047   'lr': 0.014894609341451013, 'opt_name': 'adagrad'  5 epochs
+#for m_name in [lowrank_fwfm, fwfm, pruned_fwfm]:
+#    run_all_for_model(m_name, 0, 5)

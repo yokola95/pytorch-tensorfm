@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from torchmetrics.classification import accuracy, auroc, f_beta
 
 from torchfm.dataset.avazu import AvazuDataset
 from torchfm.dataset.criteo import CriteoDataset
@@ -23,7 +22,7 @@ from torchfm.model.pnn import ProductNeuralNetworkModel
 from torchfm.model.wd import WideAndDeepModel
 from torchfm.model.xdfm import ExtremeDeepFactorizationMachineModel
 from torchfm.model.afn import AdaptiveFactorizationNetwork
-from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel
+from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel, PrunedFieldWeightedFactorizationMachineModel
 from torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
 from torchfm.torch_utils.constants import *
 
@@ -88,7 +87,7 @@ def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_
     return train_data_loader, valid_data_loader, test_data_loader
 
 
-def get_model(name, dataset):
+def get_model(name, dataset, top_k_rank):
     """
     Hyperparameters are empirically determined, not opitmized.
     """
@@ -105,9 +104,11 @@ def get_model(name, dataset):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, topk=round(top_k_percent * num_columns))
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
+    elif name == 'pruned_fwfm':
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, topk=top_k_rank)  # round(top_k_percent * num_columns)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=round(top_k_percent * num_columns))
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=top_k_rank)  # =round(top_k_percent * num_columns)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -180,25 +181,21 @@ def save_model(model, model_name, epoch_num, optimizer, learning_rate, opt_name,
 
 
 class EarlyStopper(object):
+    def __init__(self, tolerance=2, min_delta=0.05):
+        self.tolerance = tolerance
+        self.min_delta = min_delta
+        self.best_loss = None
+        self.counter = 0
+        self.early_stop = False
 
-    def __init__(self, num_trials, save_path):
-        self.num_trials = num_trials
-        self.trial_counter = 0
-        self.best_error = None
-        self.save_path = save_path
-
-    def is_continuable(self, model, optimizer, error):
-        if self.best_error is None or error < self.best_error:
-            self.best_error = error
-            self.trial_counter = 0
-            # torch.save(model, self.save_path)
-            save_model(model, self.trial_counter, optimizer, error)
-            return True
-        elif self.trial_counter + 1 < self.num_trials:
-            self.trial_counter += 1
-            return True
+    def __call__(self, loss):
+        if self.best_loss is None or self.best_loss > loss:
+            self.best_loss = loss
         else:
-            return False
+            if self.best_loss + self.min_delta < loss:
+                self.counter += 1
+                if self.counter >= self.tolerance:
+                    self.early_stop = True
 
 
 class LossCalc:
@@ -220,3 +217,11 @@ class LossCalc:
         self.total_loss = 0
         self.total_ctr_loss = 0
         self.total_half_loss = 0
+
+
+def get_from_queue(q):
+    try:
+        return q.get(timeout=5.0)
+    except Exception as e:
+        print(e)
+        return

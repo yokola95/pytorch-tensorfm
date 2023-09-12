@@ -15,9 +15,6 @@ class WrapperDataset(torch.utils.data.Dataset):
     :param dataset_path: dataset path
     """
 
-    # path = "./torchfm//test-datasets/dummy.txt"
-    # path = "../test-datasets/dummy.txt"
-
     def __init__(self, dataset_path, sep='\t', engine='c', header='infer'):
         data = pd.read_csv(dataset_path, sep=sep, engine=engine, header=header)
 
