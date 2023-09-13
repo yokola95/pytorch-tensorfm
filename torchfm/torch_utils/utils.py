@@ -87,7 +87,7 @@ def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_
     return train_data_loader, valid_data_loader, test_data_loader
 
 
-def get_model(name, dataset, top_k_rank, emb_size):
+def get_model(name, dataset, rank_param, emb_size):
     """
     Hyperparameters are empirically determined, not opitmized.
     """
@@ -106,9 +106,10 @@ def get_model(name, dataset, top_k_rank, emb_size):
     elif name == 'fwfm':
         return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns)
     elif name == 'pruned_fwfm':
-        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=top_k_rank)  # round(top_k_percent * num_columns)
+        topk = rank_param * (num_columns + 1)
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=top_k_rank)  # =round(top_k_percent * num_columns)
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':

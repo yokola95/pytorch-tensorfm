@@ -5,7 +5,7 @@ from torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, loglo
 
 models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
 metrics_to_optimize = [logloss, auc]
-criteo_ranks = [1, 3, 5, 7, 9]
+criteo_ranks = [1, 2, 3, 4, 5]
 device_inds = range(1)  #range(4)
 
 # sys.path.append('/home/viderman/persistent_drive/pytorch-fm')
