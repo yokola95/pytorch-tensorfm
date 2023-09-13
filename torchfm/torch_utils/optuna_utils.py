@@ -38,19 +38,23 @@ def save_to_file(study, model_name, metric_top_optimize, best_params, best_trial
     # f.write(str(best_params) + "\n" + str(best_trial) + "\n\n")
 
 
-def get_journal_name(model_name):
+def create_journal_name(base_journal_name, suffix):
+    return base_journal_name + suffix + '.log'
+
+
+def get_journal_name(model_name, metric_top_optimize, top_k_rank):
     if model_name == fwfm:
-        return optuna_journal_log_fwfm
+        return create_journal_name(optuna_journal_log_fwfm, metric_top_optimize + str(top_k_rank))
     elif model_name == lowrank_fwfm:
-        return optuna_journal_log_lr_fwfm
+        return create_journal_name(optuna_journal_log_lr_fwfm, metric_top_optimize + str(top_k_rank))
     elif model_name == pruned_fwfm:
-        return optuna_journal_log_pruned_fwfm
+        return create_journal_name(optuna_journal_log_pruned_fwfm, metric_top_optimize + str(top_k_rank))
     else:
         raise ValueError(f"No such model name: {model_name}")
 
 
 def erase_content_journal(journal_log):
-    file_to_delete = open(journal_log, 'w')
+    file_to_delete = open(journal_log, 'w+')
     file_to_delete.close()
 
 

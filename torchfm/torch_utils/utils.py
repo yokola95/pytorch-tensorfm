@@ -87,7 +87,7 @@ def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_
     return train_data_loader, valid_data_loader, test_data_loader
 
 
-def get_model(name, dataset, top_k_rank):
+def get_model(name, dataset, top_k_rank, emb_size):
     """
     Hyperparameters are empirically determined, not opitmized.
     """
@@ -104,11 +104,11 @@ def get_model(name, dataset, top_k_rank):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns)
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns)
     elif name == 'pruned_fwfm':
-        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, topk=top_k_rank)  # round(top_k_percent * num_columns)
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=top_k_rank)  # round(top_k_percent * num_columns)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=4, num_fields=num_columns, c=top_k_rank)  # =round(top_k_percent * num_columns)
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=top_k_rank)  # =round(top_k_percent * num_columns)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -217,6 +217,18 @@ class LossCalc:
         self.total_loss = 0
         self.total_ctr_loss = 0
         self.total_half_loss = 0
+
+
+class BestError:
+    best_auc = 0.0
+    best_logloss = 1.0
+
+    def __init__(self):
+        pass
+
+    def update(self, tmp_logloss, tmp_auc):
+        self.best_auc = tmp_auc if tmp_auc > self.best_auc else self.best_auc
+        self.best_logloss = tmp_logloss if tmp_logloss < self.best_logloss else self.best_logloss
 
 
 def get_from_queue(q):

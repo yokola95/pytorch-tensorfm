@@ -61,22 +61,24 @@ def valid_test(model, valid_data_loader, test_data_loader, criterion, device):
     return valid_err, valid_auc, test_err, test_auc, end - start
 
 
-def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, criterion_name, metric_to_optimize, weight_decay, device, top_k_rank, study=None, trial=None):
+def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, emb_size, criterion_name, metric_to_optimize, weight_decay, device, top_k_rank, study=None, trial=None):
     num_workers = 0
     device = torch.device(device)
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_name, dataset_paths)
     train_data_loader, valid_data_loader, test_data_loader = get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers)
 
-    model = get_model(model_name, train_dataset, top_k_rank).to(device)
+    model = get_model(model_name, train_dataset, top_k_rank, emb_size).to(device)
     criterion = get_criterion(criterion_name)
     optimizer = get_optimizer(opt_name, model.parameters(), learning_rate, weight_decay)
     early_stopper = EarlyStopper()
+    best_error = BestError()
 
     for epoch_i in range(epoch):
         train_time = train_wrapper(model, optimizer, train_data_loader, criterion, device)
 
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
-        save_all_args_to_file(study.study_name, model_name, trial.number, epoch_i, valid_err, valid_auc, train_time, valid_time, learning_rate, batch_size, opt_name, criterion_name, metric_to_optimize, top_k_rank)
+        save_all_args_to_file(study.study_name, model_name, trial.number, epoch_i, valid_err, valid_auc, train_time, valid_time, learning_rate, batch_size, emb_size, opt_name, criterion_name, metric_to_optimize, top_k_rank)
+        best_error.update(valid_err, valid_auc)
         # Handle pruning based on the intermediate value.
         if trial is not None:
             trial.report(valid_err, epoch_i)
@@ -89,29 +91,23 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
             break
 
     valid_err, valid_auc, test_err, test_auc, _ = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
-    print_msg(f'valid error: {valid_err} test error: {test_err}')   # , ctr error: {ctr_err}, 1/2 prediction error: {half_err}
+    print_msg(f'valid error: {valid_err} test error: {test_err}')
 
     # save_model(model, model_name + ' ' + (str(trial.number) if trial is not None else "0") + ' ' + opt_name, epoch, criterion, learning_rate, opt_name, valid_err)
 
-    return valid_err, valid_auc
+    return best_error.best_logloss, best_error.best_auc
 
 
-def top_main_for_optuna_call(opt_name, learning_rate, model_name, study, trial, device_ind, metric_to_optimize, top_k_rank):
+def top_main_for_optuna_call(opt_name, learning_rate, model_name, study, trial, device_ind, metric_to_optimize, top_k_rank, batch_size, emb_size):
     device_str = ('cuda' if torch.cuda.is_available() else 'cpu') + ":" + str(device_ind)
 
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-    err, auc = main(wrapper, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, 'bcelogitloss', metric_to_optimize, 0, device_str, top_k_rank, study, trial)
+    err, auc = main(wrapper, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, emb_size, 'bcelogitloss', metric_to_optimize, 0, device_str, top_k_rank, study, trial)
     return err if metric_to_optimize == logloss else auc
 
 
 #res = top_main_for_optuna_call("adagrad", 0.01, 'fwfm', None, None, 0, logloss, 5)
 #print(res)
-
-
-# if __name__ == '__main__':
-#     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-#     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-#     main(wrapper, train_valid_test_paths, 'lowrank_fwfm', 20, "adagrad", 0.001, 100, 'bcelogitloss', 1e-6, device)
 
 
 # from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
