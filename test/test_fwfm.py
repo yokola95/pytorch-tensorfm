@@ -1,6 +1,4 @@
 import unittest
-
-import numpy as np
 import torch
 
 from torchfm.model.fwfm import FieldWeightedFactorizationMachineModel

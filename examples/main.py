@@ -77,7 +77,7 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
         train_time = train_wrapper(model, optimizer, train_data_loader, criterion, device)
 
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
-        save_all_args_to_file(study.study_name, model_name, trial.number, epoch_i, valid_err, valid_auc, train_time, valid_time, learning_rate, batch_size, emb_size, opt_name, criterion_name, metric_to_optimize, rank_param)
+        save_all_args_to_file(study.study_name, model_name, trial.number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, learning_rate, batch_size, emb_size, opt_name, criterion_name, metric_to_optimize, rank_param)
         best_error.update(valid_err, valid_auc)
         # Handle pruning based on the intermediate value.
         if trial is not None:
@@ -109,30 +109,5 @@ def top_main_for_optuna_call(opt_name, learning_rate, model_name, study, trial, 
 #res = top_main_for_optuna_call("adagrad", 0.01, 'fwfm', None, None, 0, logloss, 5)
 #print(res)
 
-
 # from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
 # CriteoParsing.do_action("transform")
-
-
-# if __name__ == '__main__':
-#     import argparse
-#
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument('--dataset_name', default='criteo')
-#     parser.add_argument('--dataset_path', help='criteo/train.txt, avazu/train, or ml-1m/ratings.dat')
-#     parser.add_argument('--model_name', default='afi')
-#     parser.add_argument('--epoch', type=int, default=100)
-#     parser.add_argument('--learning_rate', type=float, default=0.001)
-#     parser.add_argument('--batch_size', type=int, default=2048)
-#     parser.add_argument('--weight_decay', type=float, default=1e-6)
-#     parser.add_argument('--device', default='cuda:0')
-#     parser.add_argument('--save_dir', default='chkpt')
-#     args = parser.parse_args()
-#     main(args.dataset_name,
-#          args.dataset_path,
-#          args.model_name,
-#          args.epoch,
-#          args.learning_rate,
-#          args.batch_size,
-#          args.weight_decay,
-#          args.device)
