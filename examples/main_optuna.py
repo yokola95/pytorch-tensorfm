@@ -8,8 +8,8 @@ from torchfm.torch_utils.utils import get_from_queue
 
 def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size):
     lr = trial.suggest_float('lr', 1e-4, 0.1, log=True)
-    opt_name = trial.suggest_categorical("opt_name", ["adagrad"])  # , "sgd" # ["adam", "sparseadam"]  make issues with sparse/dense gradients
-    batch_size = trial.suggest_int('batch_size', 100, 1000, log=True)
+    opt_name = "adagrad"  #  trial.suggest_categorical("opt_name", ["adagrad"])  # , "sgd" # ["adam", "sparseadam"]  make issues with sparse/dense gradients
+    batch_size = 256  #trial.suggest_int('batch_size', 100, 1000, log=True)
 
     return top_main_for_optuna_call(opt_name, lr, model_name, study, trial, device_ind, metric_to_optimize, rank_param, batch_size, emb_size)
 
