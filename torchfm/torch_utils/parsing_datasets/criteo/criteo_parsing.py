@@ -241,6 +241,12 @@ class CriteoParsing:
         else:
             raise ValueError('unknown action name: ' + action_str)
 
+    @staticmethod
+    def do_preprocessing():
+        CriteoParsing.do_action("split")
+        CriteoParsing.do_action("fit")
+        CriteoParsing.do_action("transform")
+
     def get_ctr(self, ind):
         to_files = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
         res = []
