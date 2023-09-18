@@ -29,7 +29,6 @@ weight_decay = 0
 
 base_path_project = ".."
 path_torchfm = "{}/torchfm".format(base_path_project)
-
 test_datasets_path = "{}/test-datasets/criteo".format(path_torchfm)
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
