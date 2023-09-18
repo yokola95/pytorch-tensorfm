@@ -14,15 +14,15 @@ def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_par
     return top_main_for_optuna_call(opt_name, lr, model_name, study, trial, device_ind, metric_to_optimize, rank_param, batch_size, emb_size)
 
 
-def run_optuna_study(model_name, metric_top_optimize, rank_param, emb_size, device_ind):
+def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, device_ind):
 
-    journal_name = get_journal_name(model_name, metric_top_optimize, rank_param)
+    journal_name = get_journal_name(model_name, metric_to_optimize, rank_param)
     erase_content_journal(journal_name)
     storage = JournalStorage(JournalFileStorage(journal_name))
-    study = optuna.create_study(study_name=("Study " + model_name), storage=storage,
-                                direction=(minimize if metric_top_optimize == logloss else maximize))
+    study = optuna.create_study(study_name=f"Study {model_name} {metric_to_optimize} {rank_param} {emb_size}", storage=storage,
+                                direction=(minimize if metric_to_optimize == logloss else maximize))
 
-    study.optimize(lambda trial: objective(study, trial, model_name, device_ind, metric_top_optimize, rank_param, emb_size), n_trials=optuna_num_trials)
+    study.optimize(lambda trial: objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size), n_trials=optuna_num_trials)
 
 
 def run_all_for_device_ind(queue, device_ind):

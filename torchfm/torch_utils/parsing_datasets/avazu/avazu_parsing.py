@@ -7,13 +7,14 @@ from sklearn.model_selection import train_test_split
 
 
 class AvazuParsing:
-    avazu_path = 'train'
+    base_avazu_path = "../../../../torchfm/test-datasets/avazu"
+    avazu_path = f"{base_avazu_path}/data_avazu.csv"
     threshold = 10
     testRatio = 0.1
     valRatio = 0.1
-    train_raw_path = 'train_raw.csv'
-    test_raw_path = 'test_raw.csv'
-    val_raw_path = 'val_raw.csv'
+    train_raw_path = f"{base_avazu_path}/train_raw.csv"
+    test_raw_path = f"{base_avazu_path}/test_raw.csv"
+    val_raw_path = f"{base_avazu_path}/val_raw.csv"
 
     def swapColumns(self, dataFrame, col1, col2):
         cols = dataFrame.columns.tolist()
@@ -186,4 +187,6 @@ def process_data():
     avazu_parsing.transform(raw_test, "final_test.csv")
     avazu_parsing.transform(raw_val, "final_val.csv")
 
-# process_data()
+process_data()
+
+
