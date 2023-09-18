@@ -16,7 +16,7 @@ def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_par
 
 def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, device_ind):
 
-    journal_name = get_journal_name(model_name, metric_to_optimize, rank_param)
+    journal_name = get_journal_name(model_name, metric_to_optimize, rank_param, emb_size)
     erase_content_journal(journal_name)
     storage = JournalStorage(JournalFileStorage(journal_name))
     study = optuna.create_study(study_name=f"Study {model_name} {metric_to_optimize} {rank_param} {emb_size}", storage=storage,
