@@ -27,7 +27,7 @@ epochs_num = 20
 # top_k_percent = 0.05
 weight_decay = 0
 
-base_path_project = ".."
+base_path_project = "/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm"
 path_torchfm = "{}/torchfm".format(base_path_project)
 test_datasets_path = "{}/test-datasets/criteo".format(path_torchfm)
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
