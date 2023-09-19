@@ -32,6 +32,9 @@ path_torchfm = "{}/torchfm".format(base_path_project)
 test_datasets_path = "{}/test-datasets/criteo".format(path_torchfm)
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
+test_datasets_path_movielens = "{}/test-datasets/movielens/ml-1m".format(path_torchfm)
+test_datasets_path_avazu = "{}/test-datasets/avazu".format(path_torchfm)
+
 default_base_filename = 'train'
 
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)

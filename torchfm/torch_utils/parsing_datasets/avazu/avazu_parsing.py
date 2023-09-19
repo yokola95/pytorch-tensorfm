@@ -188,4 +188,4 @@ def process_data():
     avazu_parsing.transform(raw_val, "final_val.csv")
 
 
-process_data()
+# process_data()
