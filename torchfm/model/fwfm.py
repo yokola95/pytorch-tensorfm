@@ -97,8 +97,7 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
 
     def _calc_factorization_interactions_tensors(self, emb):  # emb = (batch_size, num_fields, embedding_dim)
         emb_mul_emb_T = torch.matmul(emb, torch.transpose(emb, -2, -1))
-        inner_product = (emb_mul_emb_T * self.field_inter_weights).sum([-1,
-                                                                        -2])  # inner_product = (batch_size, 1)   # due to parametrization, self.field_inter_weights is zero-diagonal and symmetric matrix of size (num_fields, num_fields)
+        inner_product = (emb_mul_emb_T * self.field_inter_weights).sum([-1, -2])  # inner_product = (batch_size, 1)   # due to parametrization, self.field_inter_weights is zero-diagonal and symmetric matrix of size (num_fields, num_fields)
         return inner_product / 2  # (batch_size, 1)
 
 
@@ -136,9 +135,7 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
 
     def calc_factorization_interactions_debug(self, emb):
         factorization_interactions = 0.0
-        for val, row, column in zip(self._topk_vals, self._topk_rows, self._topk_columns):
-            i = row
-            j = column
+        for val, i, j in zip(self._topk_vals, self._topk_rows, self._topk_columns):
             inner_prod = torch.sum(emb[..., i, :] * emb[..., j, :], dim=-1)
             factorization_interactions += val * inner_prod
         return factorization_interactions
