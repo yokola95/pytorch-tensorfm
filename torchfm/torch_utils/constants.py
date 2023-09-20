@@ -40,6 +40,7 @@ default_base_filename = 'train'
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
 
 optuna_num_trials = 10
+debug_info_file = f"{tmp_save_dir}/debug_info.txt"
 save_optuna_results_file = f"{tmp_save_dir}/optuna_results.txt"
 optuna_journal_log = f"{tmp_save_dir}/optuna-journal"
 

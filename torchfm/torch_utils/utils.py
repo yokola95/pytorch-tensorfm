@@ -1,4 +1,5 @@
 import numpy as np
+import traceback
 import torch
 from torch.utils.data import DataLoader
 
@@ -30,6 +31,17 @@ from torchfm.torch_utils.constants import *
 def print_msg(*args):
     if debug_print:
         print(args)
+
+
+def write_to_file(*args, sep, file_path):
+    str_args = [str(arg) for arg in args]
+    with open(file_path, 'a+') as f:
+        str_to_write = sep.join(str_args) + "\n"
+        f.write(str_to_write)
+
+
+def write_debug_info(*args):
+    write_to_file(*args, sep='\n', file_path=debug_info_file)
 
 
 def get_optimizer(opt_name, parameters, learning_rate, weight_decay=0):
@@ -236,5 +248,5 @@ def get_from_queue(q):
     try:
         return q.get(timeout=5.0)
     except Exception as e:
-        print(e)
+        write_debug_info("get_from_queue cannot get item", str(e), traceback.format_exc())
         return
