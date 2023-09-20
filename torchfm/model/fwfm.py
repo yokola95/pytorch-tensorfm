@@ -58,8 +58,7 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
 
 class Symmetric(nn.Module):
     def forward(self, x):
-        return x.triu(1) + x.triu(1).transpose(-1,
-                                               -2)  # zero diagonal and symmetric - due to parametrization no need to remove diagonal in the code
+        return x.triu(1) + x.triu(1).transpose(-1, -2)  # zero diagonal and symmetric - due to parametrization no need to remove diagonal in the code
 
 
 class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
@@ -147,8 +146,8 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
         if self._topk <= 0:
             return 0.0
 
-        emb_i = torch.index_select(emb, -2, index=self._topk_indices[:, 0])
-        emb_j = torch.index_select(emb, -2, index=self._topk_indices[:, 1])
+        emb_i = torch.index_select(emb, -2, index=self._topk_rows)
+        emb_j = torch.index_select(emb, -2, index=self._topk_columns)
         factorization_interactions = torch.sum(torch.sum(emb_i * emb_j, dim=-1) * self._topk_vals, dim=-1)
         return factorization_interactions
 
