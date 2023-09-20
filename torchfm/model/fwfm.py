@@ -126,7 +126,7 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
         # Convert the flat indices back to 2D indices
         # topk_indices_2d = torch.tensor([divmod(idx.item(), input_tensor.shape[1]) for idx in topk_indices_flat])
 
-        self._topk_rows = topk_indices_flat / input_tensor.shape[1]
+        self._topk_rows = torch.div(topk_indices_flat, input_tensor.shape[1], rounding_mode='trunc')
         self._topk_columns = topk_indices_flat % input_tensor.shape[1]
 
         # The original values
