@@ -5,8 +5,8 @@ from torchfm.model.fwfm import BaseFieldWeightedFactorizationMachineModel
 
 
 class LowRankFieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
-    def __init__(self, num_features, embed_dim, num_fields, c):
-        super(LowRankFieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
+    def __init__(self, num_features, embed_dim, num_fields, c, is_multivalued=False):
+        super(LowRankFieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields, is_multivalued)
 
         self.diag_e = nn.Parameter(torch.empty(c))  # (c)
         self.U = nn.Parameter(torch.empty(c, num_fields))  # (c, num_fields)

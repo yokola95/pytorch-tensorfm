@@ -6,24 +6,29 @@ import torch.nn.utils.parametrize as parametrize
 import numpy as np
 from torch.nn.modules.module import T
 from torchfm.torch_utils.constants import sparseGrads
+from torchfm.model.weighted_embedding_bag import CompatibleWeightedEmbeddingBag
+
+
+class EmbeddingFactory:
+    @staticmethod
+    def get_embedding(num_embed, emb_dim, sparse, is_multival=False):
+        return nn.Embedding(num_embed, emb_dim, sparse=sparse) if not is_multival else CompatibleWeightedEmbeddingBag(16, 11, num_embed, emb_dim, sparse=sparse)
 
 
 class BaseFieldWeightedFactorizationMachineModel(nn.Module):
-    def __init__(self, num_features, embed_dim, num_fields):
+
+    def __init__(self, num_features, embed_dim, num_fields, is_multival=False):
         super(BaseFieldWeightedFactorizationMachineModel, self).__init__()
 
         # num_features -- number of different values over all samples, num_fields -- number of columns
-        self.num_features = np.max(
-            num_features) + 1  # number of entries for embedding = (max possible ind.) +1 to since indexing starting from 0
+        self.num_features = np.max(num_features) + 1  # number of entries for embedding = (max possible ind.) +1 to since indexing starting from 0
         self.embedding_dim = embed_dim
         self.num_fields = num_fields  # length of X
 
         self.w0 = nn.Parameter(torch.zeros(1))  # w0 global bias
-        self.bias = nn.Embedding(self.num_features, 1,
-                                 sparse=sparseGrads)  # biases w: for every field 1 dimension embedding (num_features, 1)
+        self.bias = EmbeddingFactory.get_embedding(self.num_features, 1, sparse=sparseGrads, is_multival=is_multival)  # biases w: for every field 1 dimension embedding (num_features, 1)
 
-        self.embeddings = nn.Embedding(self.num_features, embed_dim,
-                                       sparse=sparseGrads)  # embedding vectors V: (num_features, embedding_dim)
+        self.embeddings = EmbeddingFactory.get_embedding(self.num_features, embed_dim, sparse=sparseGrads, is_multival=is_multival)  # embedding vectors V: (num_features, embedding_dim)
 
         with torch.no_grad():
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
@@ -64,16 +69,13 @@ class Symmetric(nn.Module):
 class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachineModel):
     #  __use_tensors_field_interact_calc = True
 
-    def __init__(self, num_features, embed_dim, num_fields):
-        super(FieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
+    def __init__(self, num_features, embed_dim, num_fields, is_multivalued=False):
+        super(FieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields, is_multivalued)
         self.field_inter_weights = self._init_interaction_weights(num_fields)
         parametrize.register_parametrization(self, "field_inter_weights", Symmetric())
 
     def calc_factorization_interactions(self, emb):  # emb = (batch_size, num_fields, embedding_dim)
-        # if self.__use_tensors_field_interact_calc:
         return self._calc_factorization_interactions_tensors(emb)
-        # else:
-        #    return self._calc_factorization_interactions_nested_loops(emb)
 
     def _init_interaction_weights(self, num_fields):
         aux = torch.empty(num_fields, num_fields)
@@ -81,16 +83,13 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
             nn.init.trunc_normal_(aux, std=0.01)
         return nn.Parameter(aux)
 
-    def _get_field_inter_weight(self, i, j):
-        return self.field_inter_weights[i][j]
-
     # Mostly for debugging (comparison for an equality of the output)
     def _calc_factorization_interactions_nested_loops(self, emb):
         factorization_interactions = 0.0
         for i in range(self.num_fields - 1):
             for j in range(i + 1, self.num_fields):
                 inner_prod = torch.sum(emb[..., i, :] * emb[..., j, :], dim=-1)
-                factorization_interactions += self._get_field_inter_weight(i, j) * inner_prod
+                factorization_interactions += self.field_inter_weights[i][j] * inner_prod
 
         return factorization_interactions
 
@@ -107,8 +106,8 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
     _topk_rows = None
     _topk_columns = None
 
-    def __init__(self, num_features, embed_dim, num_fields, topk):
-        super(PrunedFieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields)
+    def __init__(self, num_features, embed_dim, num_fields, topk, is_multivalued=False):
+        super(PrunedFieldWeightedFactorizationMachineModel, self).__init__(num_features, embed_dim, num_fields, is_multivalued)
         self._topk = topk
 
     def set_top_entries_from_field_inter_weights(self):

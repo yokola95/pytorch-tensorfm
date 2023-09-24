@@ -8,7 +8,7 @@ import optuna
 
 def train(model, optimizer, data_loader, criterion, device, log_interval=100):
     model.train()
-    total_loss = 0.0
+    # total_loss = 0.0
     #tk0 = tqdm.tqdm(data_loader, smoothing=0, mininterval=1.0)
     for fields, target in data_loader:   #enumerate(tk0):  i,
         fields, target = fields.to(device), target.float().to(device)
@@ -102,12 +102,6 @@ def top_main_for_optuna_call(opt_name, learning_rate, model_name, study, trial, 
     device_str = ('cuda' if torch.cuda.is_available() else 'cpu') + ":" + str(device_ind)
 
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
-    valid_err, valid_auc = main(wrapper, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, emb_size, 'bcelogitloss', metric_to_optimize, 0, device_str, rank_param, study, trial)
+    dataset_name = 'movielens' if 'movielens' in train_valid_test_paths[0] else wrapper
+    valid_err, valid_auc = main(dataset_name, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, emb_size, 'bcelogitloss', metric_to_optimize, 0, device_str, rank_param, study, trial)
     return valid_err if metric_to_optimize == logloss else valid_auc
-
-
-#res = top_main_for_optuna_call("adagrad", 0.01, 'fwfm', None, None, 0, logloss, 5)
-#print(res)
-
-# from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing
-# CriteoParsing.do_action("transform")

@@ -62,3 +62,14 @@ class WeightedEmbeddingBag(nn.Module):
             return input[i, j, k]
 
         return batch_gather(padded_summed, padded_offsets[:, 1:]) - batch_gather(padded_summed, padded_offsets[:, :-1])
+
+
+class CompatibleWeightedEmbeddingBag(WeightedEmbeddingBag):
+    def __init__(self, in_l, o_l, num_embeddings, embedding_dim, device=None, dtype=None, _freeze=False, **emb_kwargs):
+        super(CompatibleWeightedEmbeddingBag, self).__init__(num_embeddings, embedding_dim, device=device, dtype=dtype, _freeze=_freeze, **emb_kwargs)
+        self.in_l = in_l
+        self.o_l = o_l
+
+    def forward(self, gen_input):
+        input, offsets, per_sample_weights = gen_input[..., 0:self.in_l].long(), gen_input[..., self.in_l:(self.in_l + self.o_l)].long(), gen_input[..., (self.in_l+self.o_l):]
+        return super(CompatibleWeightedEmbeddingBag, self).forward(input, offsets, per_sample_weights)

@@ -9,13 +9,15 @@ class FeaturesLinear(torch.nn.Module):
         super().__init__()
         self.fc = torch.nn.Embedding(np.sum(field_dims)+1, output_dim)
         self.bias = torch.nn.Parameter(torch.zeros((output_dim,)))
-        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
+        with torch.no_grad():
+            torch.nn.init.trunc_normal_(self.fc.weight, std=0.01)
+        #self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
 
     def forward(self, x):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
-        x = x + x.new_tensor(self.offsets).unsqueeze(0)
+        x = x #+ x.new_tensor(self.offsets).unsqueeze(0)
         return torch.sum(self.fc(x), dim=1) + self.bias
 
 
@@ -24,14 +26,15 @@ class FeaturesEmbedding(torch.nn.Module):
     def __init__(self, field_dims, embed_dim):
         super().__init__()
         self.embedding = torch.nn.Embedding(np.sum(field_dims)+1, embed_dim)
-        self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
-        torch.nn.init.xavier_uniform_(self.embedding.weight.data)
+        # self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
+        with torch.no_grad():
+            torch.nn.init.trunc_normal_(self.embedding.weight, std=0.01)
 
     def forward(self, x):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
-        x = x + x.new_tensor(self.offsets).unsqueeze(0)
+        x = x #+ x.new_tensor(self.offsets).unsqueeze(0)
         return self.embedding(x)
 
 

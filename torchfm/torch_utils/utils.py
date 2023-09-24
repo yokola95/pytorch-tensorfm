@@ -7,6 +7,7 @@ from torchfm.dataset.avazu import AvazuDataset
 from torchfm.dataset.criteo import CriteoDataset
 from torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from torchfm.dataset.wrapper_dataset import WrapperDataset
+from torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
 from torchfm.model.afi import AutomaticFeatureInteractionModel
 from torchfm.model.afm import AttentionalFactorizationMachineModel
 from torchfm.model.dcn import DeepCrossNetworkModel
@@ -71,14 +72,12 @@ def get_criterion(criterion):
 
 
 def get_dataset(name, path):
-    if name == 'movielens1M':
-        return MovieLens1MDataset(path)
-    elif name == 'movielens20M':
-        return MovieLens20MDataset(path)
+    if 'movielens' in name:
+        return WrapperMultivaluedDataset(path)
     elif name == 'criteo':
-        return CriteoDataset(path)
+        return WrapperDataset(path)
     elif name == 'avazu':
-        return AvazuDataset(path)
+        return WrapperDataset(path)
     elif name == 'wrapper':
         return WrapperDataset(path)
     else:
@@ -104,8 +103,8 @@ def get_model(name, dataset, rank_param, emb_size):
     Hyperparameters are empirically determined, not opitmized.
     """
     num_features = dataset.field_dims
-    features, labels = iter(dataset).__next__()
-    num_columns = len(features)
+    num_columns = dataset.num_columns
+    is_multivalued = dataset.multivalued
 
     if name == 'lr':
         return LogisticRegressionModel(num_features)
@@ -116,12 +115,12 @@ def get_model(name, dataset, rank_param, emb_size):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns)
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, is_multivalued=is_multivalued)
     elif name == 'pruned_fwfm':
         topk = rank_param * (num_columns + 1)
-        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk)
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk, is_multivalued=is_multivalued)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param)
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param, is_multivalued=is_multivalued)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':

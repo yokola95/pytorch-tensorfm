@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from multiprocessing import Process
 from main_optuna import run_all_for_device_ind
-from torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, logloss, auc
+from torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, logloss, auc
 
 models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
 metrics_to_optimize = [logloss, auc]
@@ -14,6 +14,8 @@ lst_michael = all_options_for_studies[0:20]
 lst_oren = all_options_for_studies[20:28]
 lst_ariel = all_options_for_studies[28:36]
 lst_naama = all_options_for_studies[36:]
+
+fm_options = [(fm, met_to_opt, 0, emb_size) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 
 # 8 processes
 # Use: 'tmux attach'   to run seession to run the python from
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     #all_options_for_studies.extend(all_options_for_studies_fwfm)
 
     queue = mp.Queue(100)
-    for tpl in lst_michael:
+    for tpl in fm_options:
         queue.put(tpl)
 
     processes = [Process(target=run_all_for_device_ind, args=(queue, device_ind), daemon=True) for device_ind in device_inds]

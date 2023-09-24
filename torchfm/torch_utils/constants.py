@@ -8,10 +8,12 @@ frequent_values_pkl = '.frequent_values.pkl'
 wrapper = 'wrapper'
 preprocessed = "preprocessed"
 txt = ".txt"
+csv = ".csv"
 train = "train"
 validation = "validation"
 test = "test"
 fwfm = "fwfm"
+fm = 'fm'
 lowrank_fwfm = "lowrank_fwfm"
 pruned_fwfm = "pruned_fwfm"
 logloss = "logloss"
@@ -29,11 +31,12 @@ weight_decay = 0
 
 base_path_project = "/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm"
 path_torchfm = "{}/torchfm".format(base_path_project)
-test_datasets_path = "{}/test-datasets/criteo".format(path_torchfm)
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
 test_datasets_path_movielens = "{}/test-datasets/movielens/ml-1m".format(path_torchfm)
 test_datasets_path_avazu = "{}/test-datasets/avazu".format(path_torchfm)
+test_datasets_path_criteo="{}/test-datasets/criteo".format(path_torchfm)
+test_datasets_path = test_datasets_path_criteo
 
 default_base_filename = 'train'
 
