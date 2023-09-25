@@ -109,7 +109,7 @@ def get_model(name, dataset, rank_param, emb_size):
     if name == 'lr':
         return LogisticRegressionModel(num_features)
     elif name == 'fm':
-        return FactorizationMachineModel(num_features, embed_dim=16)
+        return FactorizationMachineModel(num_features, embed_dim=emb_size)
     elif name == 'hofm':
         return HighOrderFactorizationMachineModel(num_features, order=3, embed_dim=16)
     elif name == 'ffm':
