@@ -11,7 +11,7 @@ class FactorizationMachineModel(torch.nn.Module):
         S Rendle, Factorization Machines, 2010.
     """
 
-    def __init__(self, field_dims, embed_dim):
+    def __init__(self, field_dims, embed_dim, is_multivalued=False):
         super().__init__()
         self.embedding = FeaturesEmbedding(field_dims, embed_dim)
         self.linear = FeaturesLinear(field_dims)
@@ -22,4 +22,4 @@ class FactorizationMachineModel(torch.nn.Module):
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
         x = self.linear(x) + self.fm(self.embedding(x))
-        return torch.sigmoid(x.squeeze(1))
+        return x.squeeze(1)  #torch.sigmoid()  - remove sigmoid since train/test with bcewithlogit

@@ -50,7 +50,7 @@ def test(model, data_loader, criterion, device):
     # ctr_loss, half_loss = get_baselines_log_loss(all_targets) # compute this with sums
     auc_res = auc.compute().item()
 
-    return loss, auc_res  #, ctr_loss, half_loss
+    return loss, auc_res   # loss can be logloss or mse
 
 
 def valid_test(model, valid_data_loader, test_data_loader, criterion, device):
@@ -103,5 +103,6 @@ def top_main_for_optuna_call(opt_name, learning_rate, model_name, study, trial, 
 
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
     dataset_name = 'movielens' if 'movielens' in train_valid_test_paths[0] else wrapper
-    valid_err, valid_auc = main(dataset_name, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, emb_size, 'bcelogitloss', metric_to_optimize, 0, device_str, rank_param, study, trial)
-    return valid_err if metric_to_optimize == logloss else valid_auc
+    criterion_name = 'mse' if 'movielens' in train_valid_test_paths[0] else 'bcelogitloss'
+    valid_err, valid_auc = main(dataset_name, train_valid_test_paths, model_name, epochs_num, opt_name, learning_rate, batch_size, emb_size, criterion_name, metric_to_optimize, 0, device_str, rank_param, study, trial)
+    return valid_err if metric_to_optimize != auc else valid_auc

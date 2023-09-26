@@ -18,6 +18,7 @@ lowrank_fwfm = "lowrank_fwfm"
 pruned_fwfm = "pruned_fwfm"
 logloss = "logloss"
 auc = "auc"
+mse = "mse"
 sep = ","
 minimize = "minimize"
 maximize = "maximize"
@@ -35,8 +36,8 @@ tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
 test_datasets_path_movielens = "{}/test-datasets/movielens/ml-1m".format(path_torchfm)
 test_datasets_path_avazu = "{}/test-datasets/avazu".format(path_torchfm)
-test_datasets_path_criteo="{}/test-datasets/criteo".format(path_torchfm)
-test_datasets_path = test_datasets_path_criteo
+test_datasets_path_criteo = "{}/test-datasets/criteo".format(path_torchfm)
+test_datasets_path = test_datasets_path_movielens
 
 default_base_filename = 'train'
 

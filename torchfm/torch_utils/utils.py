@@ -63,10 +63,10 @@ def get_criterion(criterion):
         return torch.nn.BCELoss()
     elif criterion == 'bcelogitloss':
         return torch.nn.BCEWithLogitsLoss()
-    elif criterion == 'mseloss':
-        return torch.nn.MSELoss()
     elif criterion == "nllloss":
         return torch.nn.NLLLoss()
+    elif criterion == "mse":
+        return torch.nn.MSELoss()
     else:
         raise ValueError('unknown criterion name: ' + criterion)
 
@@ -109,7 +109,7 @@ def get_model(name, dataset, rank_param, emb_size):
     if name == 'lr':
         return LogisticRegressionModel(num_features)
     elif name == 'fm':
-        return FactorizationMachineModel(num_features, embed_dim=emb_size)
+        return FactorizationMachineModel(num_features, embed_dim=emb_size, is_multivalued=is_multivalued)
     elif name == 'hofm':
         return HighOrderFactorizationMachineModel(num_features, order=3, embed_dim=16)
     elif name == 'ffm':
