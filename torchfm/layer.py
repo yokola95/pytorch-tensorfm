@@ -1,13 +1,15 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torchfm.model.embedding_factory import EmbeddingFactory
+from torchfm.torch_utils.constants import sparseGrads
 
 
 class FeaturesLinear(torch.nn.Module):
 
-    def __init__(self, field_dims, output_dim=1):
+    def __init__(self, field_dims, output_dim=1, is_multival=False):
         super().__init__()
-        self.fc = torch.nn.Embedding(np.sum(field_dims)+1, output_dim)
+        self.fc = EmbeddingFactory.get_embedding(np.sum(field_dims)+1, output_dim,  sparse=sparseGrads, is_multival=is_multival)  # torch.nn.Embedding(np.sum(field_dims)+1, output_dim)
         self.bias = torch.nn.Parameter(torch.zeros((output_dim,)))
         with torch.no_grad():
             torch.nn.init.trunc_normal_(self.fc.weight, std=0.01)
@@ -23,9 +25,9 @@ class FeaturesLinear(torch.nn.Module):
 
 class FeaturesEmbedding(torch.nn.Module):
 
-    def __init__(self, field_dims, embed_dim):
+    def __init__(self, field_dims, embed_dim, is_multival=False):
         super().__init__()
-        self.embedding = torch.nn.Embedding(np.sum(field_dims)+1, embed_dim)
+        self.embedding = EmbeddingFactory.get_embedding(np.sum(field_dims)+1, embed_dim, sparse=sparseGrads, is_multival=is_multival)  #  torch.nn.Embedding(np.sum(field_dims)+1, embed_dim)
         # self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
         with torch.no_grad():
             torch.nn.init.trunc_normal_(self.embedding.weight, std=0.01)

@@ -92,7 +92,7 @@ def get_datasets(dataset_name, dataset_paths):
 
 
 def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers):
-    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
     valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
     test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
     return train_data_loader, valid_data_loader, test_data_loader
@@ -104,23 +104,23 @@ def get_model(name, dataset, rank_param, emb_size):
     """
     num_features = dataset.field_dims
     num_columns = dataset.num_columns
-    is_multivalued = dataset.multivalued
+    is_multival = dataset.multivalued
 
     if name == 'lr':
         return LogisticRegressionModel(num_features)
     elif name == 'fm':
-        return FactorizationMachineModel(num_features, embed_dim=emb_size, is_multivalued=is_multivalued)
+        return FactorizationMachineModel(num_features, embed_dim=emb_size, is_multivalued=is_multival)
     elif name == 'hofm':
         return HighOrderFactorizationMachineModel(num_features, order=3, embed_dim=16)
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, is_multivalued=is_multivalued)
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, is_multivalued=is_multival)
     elif name == 'pruned_fwfm':
         topk = rank_param * (num_columns + 1)
-        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk, is_multivalued=is_multivalued)
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk, is_multivalued=is_multival)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param, is_multivalued=is_multivalued)
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param, is_multivalued=is_multival)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':

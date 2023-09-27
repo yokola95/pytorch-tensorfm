@@ -11,6 +11,7 @@ txt = ".txt"
 csv = ".csv"
 train = "train"
 validation = "validation"
+val = "val"
 test = "test"
 fwfm = "fwfm"
 fm = 'fm'

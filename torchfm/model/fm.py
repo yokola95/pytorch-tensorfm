@@ -13,8 +13,8 @@ class FactorizationMachineModel(torch.nn.Module):
 
     def __init__(self, field_dims, embed_dim, is_multivalued=False):
         super().__init__()
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-        self.linear = FeaturesLinear(field_dims)
+        self.embedding = FeaturesEmbedding(field_dims, embed_dim, is_multival=is_multivalued)
+        self.linear = FeaturesLinear(field_dims, is_multival=is_multivalued)
         self.fm = FactorizationMachine(reduce_sum=True)
 
     def forward(self, x):

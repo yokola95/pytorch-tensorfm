@@ -42,7 +42,7 @@ if __name__ == '__main__':
     #all_options_for_studies_fwfm = [(fwfm, met_to_opt, 0, emb_size) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
     #all_options_for_studies.extend(all_options_for_studies_fwfm)
 
-    queue = mp.Queue(100)
+    queue = mp.Queue()
     for tpl in movielens_options_studies:
         queue.put(tpl)
 
