@@ -5,16 +5,18 @@ import pandas as pd
 import pickle
 from sklearn.model_selection import train_test_split
 
+from torchfm.torch_utils.constants import test_datasets_path_avazu
+
 
 class AvazuParsing:
-    base_avazu_path = "/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/torchfm/test-datasets/avazu"
-    avazu_path = f"{base_avazu_path}/data_avazu.csv"
+    # base_avazu_path = "/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/torchfm/test-datasets/avazu"
+    avazu_path = f"{test_datasets_path_avazu}/data_avazu.csv"
     threshold = 10
     testRatio = 0.1
     valRatio = 0.1
-    train_raw_path = f"{base_avazu_path}/train_raw.csv"
-    test_raw_path = f"{base_avazu_path}/test_raw.csv"
-    val_raw_path = f"{base_avazu_path}/val_raw.csv"
+    train_raw_path = f"{test_datasets_path_avazu}/train_raw.csv"
+    test_raw_path = f"{test_datasets_path_avazu}/test_raw.csv"
+    val_raw_path = f"{test_datasets_path_avazu}/val_raw.csv"
 
     def swapColumns(self, dataFrame, col1, col2):
         cols = dataFrame.columns.tolist()
@@ -69,9 +71,9 @@ class AvazuParsing:
 
     def keep_frequent(self, df, threshold):
         # Apply the function to store frequent values to a file
-        self.store_frequent_values(df, threshold, '../../../test-datasets/avazu/frequent_values.pkl')
+        self.store_frequent_values(df, threshold, f"{test_datasets_path_avazu}/frequent_values.pkl")
 
-        self.read_frequent(df, '../../../test-datasets/avazu/frequent_values.pkl')
+        self.read_frequent(df, f"{test_datasets_path_avazu}/frequent_values.pkl")
 
     def save_dic(self, dic, file_name):
         with open(file_name, 'wb') as file:
@@ -104,8 +106,8 @@ class AvazuParsing:
                 global_index_value_mapping[column_name] = {index: value for value, index in value_index_mapping.items()}
                 global_value_index_mapping[column_name] = {value: index for value, index in value_index_mapping.items()}
 
-        self.save_dic(global_index_value_mapping, "../../../test-datasets/avazu/global_index_value_mapping")
-        self.save_dic(global_value_index_mapping, "../../../test-datasets/avazu/global_value_index_mapping")
+        self.save_dic(global_index_value_mapping, f"{test_datasets_path_avazu}/global_index_value_mapping")
+        self.save_dic(global_value_index_mapping, f"{test_datasets_path_avazu}/global_value_index_mapping")
 
     def preprocess_before_split(self, db):
         db['click'] = db['click'].astype(int)
@@ -129,7 +131,7 @@ class AvazuParsing:
 
     def index_df(self, dataframe):
         new_dataframe = pd.DataFrame()
-        global_value_index_mapping = self.read_dic("../../../test-datasets/avazu/global_value_index_mapping")
+        global_value_index_mapping = self.read_dic(f"{test_datasets_path_avazu}//global_value_index_mapping")
         for column_name in dataframe.columns:
             if column_name != 'click' and column_name != 'id':
                 value_index_mapping = global_value_index_mapping[column_name]
@@ -159,7 +161,7 @@ class AvazuParsing:
         self.save_global_index(db)
 
     def transform(self, db, final_path):
-        self.read_frequent(db, '../../../test-datasets/avazu/frequent_values.pkl')
+        self.read_frequent(db, f"{test_datasets_path_avazu}/frequent_values.pkl")
         db = self.index_df(db)
         db.to_csv(final_path, index=False)
 
