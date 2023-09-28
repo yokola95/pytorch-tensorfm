@@ -9,7 +9,6 @@ from torchfm.torch_utils.constants import test_datasets_path_avazu
 
 
 class AvazuParsing:
-    # base_avazu_path = "/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/torchfm/test-datasets/avazu"
     avazu_path = f"{test_datasets_path_avazu}/data_avazu.csv"
     threshold = 10
     testRatio = 0.1
