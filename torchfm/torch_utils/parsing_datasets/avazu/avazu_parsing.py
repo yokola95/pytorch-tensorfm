@@ -184,9 +184,9 @@ def process_data():
 
     avazu_parsing.fit(raw_train)
 
-    avazu_parsing.transform(raw_train, "final_train.csv")
-    avazu_parsing.transform(raw_test, "final_test.csv")
-    avazu_parsing.transform(raw_val, "final_val.csv")
+    avazu_parsing.transform(raw_train, f"{test_datasets_path_avazu}/final_train.csv")
+    avazu_parsing.transform(raw_test, f"{test_datasets_path_avazu}/final_test.csv")
+    avazu_parsing.transform(raw_val, f"{test_datasets_path_avazu}/final_val.csv")
 
 
 # process_data()
