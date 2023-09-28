@@ -191,6 +191,8 @@ def load_model(model_name, dataset, path):
 def save_model(model, model_name, epoch_num, optimizer, learning_rate, opt_name, loss):
     torch.save({'epoch': epoch_num, 'lr': learning_rate, 'opt_name': opt_name, 'loss': loss, 'model_state_dict': model.state_dict(), 'optimizer_state_dict': optimizer.state_dict()}, f'{tmp_save_dir}/{model_name}.pt')
 
+def save_tensor(x, model_name):
+    torch.save(x, f'{tmp_save_dir}/{model_name}_interaction.pt')
 
 class EarlyStopper(object):
     def __init__(self, tolerance=2, min_delta=0.05):

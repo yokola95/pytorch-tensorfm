@@ -64,6 +64,9 @@ def valid_test(model, valid_data_loader, test_data_loader, criterion, device):
 def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate, batch_size, emb_size, criterion_name, metric_to_optimize, weight_decay, device, rank_param, study=None, trial=None):
     num_workers = 0
     device = torch.device(device)
+    study_name = study.study_name if study is not None else ""
+    trial_number = trial.number if trial is not None else 0
+
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_name, dataset_paths)
     train_data_loader, valid_data_loader, test_data_loader = get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers)
 
@@ -77,7 +80,7 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
         train_time = train_wrapper(model, optimizer, train_data_loader, criterion, device)
 
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
-        save_all_args_to_file(study.study_name, model_name, trial.number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, learning_rate, batch_size, emb_size, opt_name, criterion_name, metric_to_optimize, rank_param)
+        save_all_args_to_file(study_name, model_name, trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, learning_rate, batch_size, emb_size, opt_name, criterion_name, metric_to_optimize, rank_param)
         best_error.update(valid_err, valid_auc)
         # Handle pruning based on the intermediate value.
         if trial is not None:
@@ -93,7 +96,7 @@ def main(dataset_name, dataset_paths, model_name, epoch, opt_name, learning_rate
     valid_err, valid_auc, test_err, test_auc, _ = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
     print_msg(f'valid error: {valid_err} test error: {test_err}')
 
-    # save_model(model, model_name + ' ' + (str(trial.number) if trial is not None else "0") + ' ' + opt_name, epoch, criterion, learning_rate, opt_name, valid_err)
+    # save_model(model, model_name + ' ' + str(trial_number) + ' ' + opt_name, epoch, criterion, learning_rate, opt_name, valid_err)
 
     return best_error.best_logloss, best_error.best_auc
 

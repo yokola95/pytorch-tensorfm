@@ -33,7 +33,7 @@ class AvazuParsing:
     # Function to replace infrequent values in each column with a default value
     def replace_infrequent_with_default(self, df, frequent_values):
         for col in df.columns:
-            if col != 'id':
+            if col != 'click' and col != 'id' and col != 'label':
                 # Replace values with the default value based on the frequent values
                 mask = (df[col].notnull()) & (~df[col].isin(frequent_values[col]))
                 df.loc[mask, col] = "rare"
@@ -44,7 +44,7 @@ class AvazuParsing:
     def store_frequent_values(self, df, threshold, file_path):
         frequent_values = {}
         for col in df.columns:
-            if col != 'id':
+            if col != 'click' and col != 'id' and col != 'label':
                 # Calculate the frequency of each unique value in the column
                 value_counts = df[col].value_counts()
 
@@ -99,7 +99,7 @@ class AvazuParsing:
         global_index_value_mapping = {}
         global_value_index_mapping = {}
         for column_name in dataframe.columns:
-            if column_name != 'click' and column_name != 'id':
+            if column_name != 'click' and column_name != 'id' and column_name != 'label':
                 value_index_mapping = self.save_index_column(dataframe[column_name], offset)
                 offset += len(value_index_mapping)
                 global_index_value_mapping[column_name] = {index: value for value, index in value_index_mapping.items()}
@@ -109,8 +109,8 @@ class AvazuParsing:
         self.save_dic(global_value_index_mapping, f"{test_datasets_path_avazu}/global_value_index_mapping")
 
     def preprocess_before_split(self, db):
-        db['click'] = db['click'].astype(int)
-        db = self.swapColumns(db, "id", "click")
+        db['label'] = db['click'].astype(int)
+        db.drop(columns=['click', 'id'], inplace=True)
         #        db["day"] = db["hour"].apply(lambda x: self.getDay(x))
         #        db["hour"] = db["hour"].apply(lambda x: self.getHour(x))
 
@@ -132,7 +132,7 @@ class AvazuParsing:
         new_dataframe = pd.DataFrame()
         global_value_index_mapping = self.read_dic(f"{test_datasets_path_avazu}//global_value_index_mapping")
         for column_name in dataframe.columns:
-            if column_name != 'click' and column_name != 'id':
+            if column_name != 'click' and column_name != 'id' and column_name != 'label':
                 value_index_mapping = global_value_index_mapping[column_name]
                 new_dataframe[column_name] = self.index_column_from_mapping(dataframe[column_name], value_index_mapping)
             else:
