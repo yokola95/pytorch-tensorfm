@@ -26,7 +26,10 @@ class WeightedEmbeddingBag(nn.Module):
         self.emb_kwargs = emb_kwargs
         torch.nn.init.normal_(self.weight)
 
-    def forward(self, input, offsets, per_sample_weights):
+    def get_l2_reg(self, embeddings):
+        return embeddings.square().mean(0).sum()
+
+    def forward(self, input, offsets, per_sample_weights, return_l2=False):
         r"""
         Computed weighted sums of input embeddings in each bag, assuming each mini-batch comprises the same
         number of embeddings, weights, and bags. Variable number of embeddings and their corresponding weights
@@ -61,15 +64,29 @@ class WeightedEmbeddingBag(nn.Module):
 
             return input[i, j, k]
 
-        return batch_gather(padded_summed, padded_offsets[:, 1:]) - batch_gather(padded_summed, padded_offsets[:, :-1])
+        score = batch_gather(padded_summed, padded_offsets[:, 1:]) - batch_gather(padded_summed, padded_offsets[:, :-1])
+        return score if not return_l2 else (score, self.get_l2_reg(embeddings))
 
 
 class CompatibleWeightedEmbeddingBag(WeightedEmbeddingBag):
     def __init__(self, in_l, o_l, num_embeddings, embedding_dim, device=None, dtype=None, _freeze=False, **emb_kwargs):
         super(CompatibleWeightedEmbeddingBag, self).__init__(num_embeddings, embedding_dim, device=device, dtype=dtype, _freeze=_freeze, **emb_kwargs)
-        self.in_l = in_l
-        self.o_l = o_l
+        self.in_l = in_l   # indices length
+        self.o_l = o_l     # offsets length
 
-    def forward(self, gen_input):
+    def forward(self, gen_input, return_l2=False):
         input, offsets, per_sample_weights = gen_input[..., 0:self.in_l].long(), gen_input[..., self.in_l:(self.in_l + self.o_l)].long(), gen_input[..., (self.in_l+self.o_l):]
-        return super(CompatibleWeightedEmbeddingBag, self).forward(input, offsets, per_sample_weights)
+        return super(CompatibleWeightedEmbeddingBag, self).forward(input, offsets, per_sample_weights, return_l2)
+
+
+class CompatibleEmbedding(nn.Embedding):
+
+    def __init__(self, num_embed, emb_dim, sparse):
+        super(CompatibleEmbedding, self).__init__(num_embed, emb_dim, sparse=sparse)
+
+    def get_l2_reg(self, embeddings):
+        return embeddings.square().mean(0).sum()
+
+    def forward(self, input, return_l2=False):
+        embeddings = super(CompatibleEmbedding, self).forward(input)
+        return (embeddings, self.get_l2_reg(embeddings)) if return_l2 else embeddings

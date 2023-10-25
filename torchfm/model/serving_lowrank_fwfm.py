@@ -1,9 +1,6 @@
-import time
 import torch
 import torch.nn as nn
-from torchfm.model.fwfm import BaseFieldWeightedFactorizationMachineModel, PrunedFieldWeightedFactorizationMachineModel, \
-    FieldWeightedFactorizationMachineModel
-from torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
+from torchfm.model.fwfm import BaseFieldWeightedFactorizationMachineModel
 
 
 class ServingLowRankFwFM(BaseFieldWeightedFactorizationMachineModel):
@@ -60,61 +57,3 @@ class ServingLowRankFwFM(BaseFieldWeightedFactorizationMachineModel):
         # Combine field interactions and factorization interactions
         output = lin_term + factorization_interactions
         return output  # (batch_size, 1)
-
-
-def do_runtime_experiment():
-    num_items_in_auction = 1000
-    num_epochs = 1000  # num loop iterations
-    num_features = 10000
-    embed_dim = 8
-    num_fields = 63
-    c = 3
-    num_item_fields = 39
-    num_ctx_fields = num_fields - num_item_fields
-
-    low_ind_bound = 1
-    high_ind_bound = num_features - 1
-
-
-    serving_lr_model = ServingLowRankFwFM(num_features, embed_dim, num_fields, c, num_item_fields)
-    serving_lr_model.eval()
-    low_rank_model = LowRankFieldWeightedFactorizationMachineModel(num_features, embed_dim, num_fields, c)
-    low_rank_model.eval()
-
-    topk = c * (num_fields + 1)
-    pruned_model = PrunedFieldWeightedFactorizationMachineModel(num_features, embed_dim, num_fields, topk=topk)
-    pruned_model.eval()
-
-    fwfm_model = FieldWeightedFactorizationMachineModel(num_features, embed_dim, num_fields)
-    fwfm_model.eval()
-
-    def run_model(f_model):
-        start = time.time()
-        if f_model == "serving":
-
-            for epoch in range(num_epochs):
-                user_ctx = torch.randint(low=low_ind_bound, high=high_ind_bound, size=(1, num_ctx_fields), dtype=torch.long)
-                item = torch.randint(low=low_ind_bound, high=high_ind_bound, size=(num_items_in_auction, num_item_fields), dtype=torch.long)
-                res = serving_lr_model(user_ctx, item)
-
-        elif f_model == "low_rank":
-            for epoch in range(num_epochs):
-                user_item = torch.randint(low=low_ind_bound, high=high_ind_bound, size=(num_items_in_auction, num_fields), dtype=torch.long)
-                res = low_rank_model(user_item)
-
-        elif f_model == "pruned":
-            for epoch in range(num_epochs):
-                user_item = torch.randint(low=low_ind_bound, high=high_ind_bound, size=(num_items_in_auction, num_fields), dtype=torch.long)
-                res = pruned_model(user_item)
-
-        else:  # fwfm
-            for epoch in range(num_epochs):
-                user_item = torch.randint(low=low_ind_bound, high=high_ind_bound, size=(num_items_in_auction, num_fields), dtype=torch.long)
-                res = fwfm_model(user_item)
-
-        end = time.time()
-        print(f_model, end - start)
-
-    with torch.no_grad():
-        for f_model in ["serving", "low_rank", "pruned", "fwfm"]:
-            run_model(f_model)

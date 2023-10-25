@@ -1,4 +1,3 @@
-import time
 from abc import abstractmethod
 
 import torch
@@ -30,31 +29,46 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
             nn.init.trunc_normal_(self.bias.weight, std=0.01)
             nn.init.trunc_normal_(self.embeddings.weight, std=0.01)
 
-    def calc_linear_term(self, x):
+    def calc_linear_term(self, x, return_l2=False):
         # Biases (field weights)
         biases_sum = self.bias(x).squeeze().sum(-1)  # (batch_size, 1)
+        score = self.w0 + biases_sum  # (batch_size, 1)
+        if return_l2:
+            lin_reg = self.bias(x).square().mean(0).sum() + torch.square(self.w0)
+            return score, lin_reg
+        else:
+            return score, 0.0
 
-        return self.w0 + biases_sum  # (batch_size, 1)
-
-    def forward(self, x):
+    def forward(self, x, return_l2=False):
         """
         :param x: Float tensor of size ``(batch_size, num_fields)``
+        :param return_l2: flag showing whther to return l2 regularization term
         """
         # Embedding layer
         emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
 
         # linear term = global bias and biases per feature (field weights)
-        lin_term = self.calc_linear_term(x)  # (batch_size, 1)
+        lin_term, lin_reg = self.calc_linear_term(x, return_l2)   # (batch_size, 1)
 
         factorization_interactions = self.calc_factorization_interactions(emb)  # (batch_size, 1)
+        if return_l2:
+            reg = self.get_l2_reg(emb)
+        else:
+            reg = 0.0
 
         # Combine field interactions and factorization interactions
         output = lin_term + factorization_interactions
-        return output  # (batch_size, 1)
+        total_reg = [lin_reg, reg]
+
+        return output, total_reg  # (batch_size, 1)
 
     @abstractmethod
     def calc_factorization_interactions(self, emb):
         pass
+
+    def get_l2_reg(self, emb):
+        reg = emb.square().mean(0).sum()
+        return reg
 
 
 class Symmetric(nn.Module):
@@ -94,6 +108,11 @@ class FieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizationMachi
         inner_product = (emb_mul_emb_T * self.field_inter_weights).sum([-1, -2])  # inner_product = (batch_size, 1)   # due to parametrization, self.field_inter_weights is zero-diagonal and symmetric matrix of size (num_fields, num_fields)
         return inner_product / 2  # (batch_size, 1)
 
+    def get_l2_reg(self, emb):
+        base_reg = super(FieldWeightedFactorizationMachineModel, self).get_l2_reg(emb)
+        iter_reg = self.field_inter_weights.square().mean() / 2
+        return base_reg + iter_reg
+
 
 class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMachineModel):
     _use_topk = False
@@ -121,13 +140,19 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
         # Convert the flat indices back to 2D indices
         # topk_indices_2d = torch.tensor([divmod(idx.item(), input_tensor.shape[1]) for idx in topk_indices_flat])
 
-        self._topk_rows = torch.div(topk_indices_flat, input_tensor.shape[1], rounding_mode='trunc')
+        self._topk_rows = torch.div(topk_indices_flat, input_tensor.shape[1], rounding_mode='trunc').detach()
         self._topk_columns = topk_indices_flat % input_tensor.shape[1]
 
         # The original values
-        self._topk_vals = original_tensor[self._topk_rows, self._topk_columns]
+        self._topk_vals = original_tensor[self._topk_rows, self._topk_columns].detach()
 
     def calc_factorization_interactions_debug(self, emb):
+        if not self._use_topk:
+            return super(PrunedFieldWeightedFactorizationMachineModel, self).calc_factorization_interactions(emb)
+
+        if self._topk <= 0:
+            return 0.0
+
         factorization_interactions = 0.0
         for val, i, j in zip(self._topk_vals, self._topk_rows, self._topk_columns):
             inner_prod = torch.sum(emb[..., i, :] * emb[..., j, :], dim=-1)

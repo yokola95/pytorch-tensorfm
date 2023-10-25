@@ -1,3 +1,5 @@
+import random
+import os
 import numpy as np
 import traceback
 import torch
@@ -43,6 +45,13 @@ def write_to_file(*args, sep, file_path):
 
 def write_debug_info(*args):
     write_to_file(*args, sep='\n', file_path=debug_info_file)
+
+
+def write_df_to_hdfs(spark, *args, sep, file_path):
+    str_args = [str(arg) for arg in args]
+    line_str = sep.join(str_args)
+    df = spark.createDataFrame(data=[line_str], schema=["all_cols"])
+    df.write.save(path='csv', format='csv', mode='append', sep='\t')
 
 
 def get_optimizer(opt_name, parameters, learning_rate, weight_decay=0):
@@ -92,9 +101,9 @@ def get_datasets(dataset_name, dataset_paths):
 
 
 def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers):
-    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
-    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
-    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True)
+    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
     return train_data_loader, valid_data_loader, test_data_loader
 
 
@@ -194,6 +203,9 @@ def save_model(model, model_name, epoch_num, optimizer, learning_rate, opt_name,
 def save_tensor(x, model_name):
     torch.save(x, f'{tmp_save_dir}/{model_name}_interaction.pt')
 
+def load_tensor(model_name):
+    return torch.load(f'{tmp_save_dir}/{model_name}_interaction.pt')
+
 class EarlyStopper(object):
     def __init__(self, tolerance=2, min_delta=0.05):
         self.tolerance = tolerance
@@ -245,9 +257,41 @@ class BestError:
         self.best_logloss = tmp_logloss if tmp_logloss < self.best_logloss else self.best_logloss
 
 
+def regularization_term(mdl, l2_coef):
+    if use_regularization:
+        l2_reg = sum(p.norm(2) for p in mdl.parameters())
+        return l2_coef * l2_reg
+    else:
+        return torch.tensor(0.)
+
+
 def get_from_queue(q):
     try:
         return q.get(timeout=5.0)
     except Exception as e:
         write_debug_info("get_from_queue cannot get item", str(e), traceback.format_exc())
         return
+
+
+def set_torch_seed():
+    torch.manual_seed(torch_global_seed)
+    torch.cuda.manual_seed(torch_global_seed)
+
+    random.seed(python_random_seed)
+    np.random.seed(python_random_seed)
+
+    # When running on the CuDNN backend, two further options must be set
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    # Set a fixed value for the hash seed
+    os.environ["PYTHONHASHSEED"] = str(python_random_seed)
+
+
+def get_seeded_generator():
+    g = torch.Generator()
+    g.manual_seed(torch_global_seed)
+    return g
+
+
+def get_device_str(device_ind):
+    return ('cuda' if torch.cuda.is_available() else 'cpu') + ":" + str(device_ind)

@@ -16,7 +16,7 @@ class WrapperDataset(torch.utils.data.Dataset):
     """
     multivalued = False
 
-    def __init__(self, dataset_path, sep=',', engine='c', header='infer'):
+    def __init__(self, dataset_path, sep='\t', engine='c', header='infer'):
         data = pd.read_csv(dataset_path, sep=sep, engine=engine, header=header)
 
         self.items = data.loc[:, data.columns != label].to_numpy()

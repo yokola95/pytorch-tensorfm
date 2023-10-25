@@ -33,3 +33,8 @@ class LowRankFieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizati
         term1 = (torch.square(emb).sum(-1) * diag_d).sum(1)                            # (batch_size) <- (batch_size, num_fields) * (num_fields).sum(1)
         term2 = (torch.square(P).sum(-1) * self.diag_e).sum(1)                         # (batch_size) <- (batch_size, c) * (c).sum(1)
         return (term1 + term2) / 2                                                     # (batch_size, 1)
+
+    def get_l2_reg(self, emb):
+        base_reg = super(LowRankFieldWeightedFactorizationMachineModel, self).get_l2_reg(emb)
+        iter_reg = self.field_inter_weights.square().mean() / 2
+        return base_reg + iter_reg

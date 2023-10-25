@@ -17,5 +17,5 @@ if __name__ == '__main__':
         url="https://github.com/rixwew/torchfm",
         author="rixwew",
         author_email="rixwew@gmail.com",
-        packages=find_packages(exclude=["examples", "docs"]),
+        packages=find_packages(exclude=["main_functions", "docs"]),
     )

@@ -1,10 +1,12 @@
+import torch
 import traceback
 import optuna
 from optuna.storages import JournalStorage, JournalFileStorage
-from main import top_main_for_optuna_call
+from main import top_main_for_option_run
+from pyspark.scripts.options_to_run import Option2Run
 from torchfm.torch_utils.constants import optuna_num_trials, logloss, mse, minimize, maximize
 from torchfm.torch_utils.optuna_utils import get_journal_name, erase_content_journal
-from torchfm.torch_utils.utils import get_from_queue, write_debug_info
+from torchfm.torch_utils.utils import get_from_queue, write_debug_info, set_torch_seed
 
 
 def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size):
@@ -12,7 +14,8 @@ def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_par
     opt_name = "adagrad"  #  trial.suggest_categorical("opt_name", ["adagrad"])  # , "sgd" # ["adam", "sparseadam"]  make issues with sparse/dense gradients
     batch_size = 256  #trial.suggest_int('batch_size', 100, 1000, log=True)
 
-    return top_main_for_optuna_call(opt_name, lr, model_name, study, trial, device_ind, metric_to_optimize, rank_param, batch_size, emb_size)
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, lr, opt_name, batch_size, False, 0.0, 0.0)
+    return top_main_for_option_run(study, trial, device_ind, option_to_run)
 
 
 def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, device_ind):
@@ -28,6 +31,8 @@ def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, devic
 
 def run_all_for_device_ind(queue, device_ind):
     try:
+        set_torch_seed()
+
         while True:
             elm = get_from_queue(queue)
             if elm is None:

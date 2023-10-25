@@ -15,12 +15,13 @@ class FeaturesLinear(torch.nn.Module):
             torch.nn.init.trunc_normal_(self.fc.weight, std=0.01)
         #self.offsets = np.array((0, *np.cumsum(field_dims)[:-1]), dtype=np.long)
 
-    def forward(self, x):
+    def forward(self, x, return_l2=False):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
-        x = x #+ x.new_tensor(self.offsets).unsqueeze(0)
-        return torch.sum(self.fc(x), dim=1) + self.bias
+        embed, reg = self.fc(x, return_l2) if return_l2 else self.fc(x, return_l2), 0.0
+        score = torch.sum(embed, dim=1) + self.bias
+        return score, (torch.square(self.bias) + reg) if return_l2 else score
 
 
 class FeaturesEmbedding(torch.nn.Module):
@@ -32,12 +33,13 @@ class FeaturesEmbedding(torch.nn.Module):
         with torch.no_grad():
             torch.nn.init.trunc_normal_(self.embedding.weight, std=0.01)
 
-    def forward(self, x):
+    def forward(self, x, return_l2=False):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
+        :param return_l2
         """
-        x = x #+ x.new_tensor(self.offsets).unsqueeze(0)
-        return self.embedding(x)
+        # x = x  #+ x.new_tensor(self.offsets).unsqueeze(0)
+        return self.embedding(x, return_l2)
 
 
 class FieldAwareFactorizationMachine(torch.nn.Module):
