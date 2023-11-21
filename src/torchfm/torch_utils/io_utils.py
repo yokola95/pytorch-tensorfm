@@ -7,7 +7,7 @@ from src.torchfm.torch_utils.options_to_run import Option2Run
 
 
 def option_to_file_name(option: Option2Run):
-    return f"results_{option.m_to_check}_{option.met_to_opt}_{option.opt_name}_{option.emb_size}_{option.rank}_{option.reg_coef_vectors}_{option.reg_coef_biases}"
+    return f"results_{option.part_id}"   #f"results_{option.m_to_check}_{option.met_to_opt}_{option.opt_name}_{option.emb_size}_{option.rank}"  # _{option.reg_coef_vectors}_{option.reg_coef_biases}
 
 
 def get_train_validation_test_preprocessed_paths(base_path, base_filename):
@@ -28,7 +28,8 @@ def read_df_from_hdfs(dataset_path, sep, engine, header):
     import tensorflow as tf
 
     with tf.io.gfile.GFile(dataset_path, "r") as f:
-        df = pd.read_csv(f, sep, engine, header)
+        df = pd.read_csv(f, sep=sep, engine=engine, header=header)
+
     return df
 
 
@@ -40,6 +41,10 @@ def read_pd_dataframe(dataset_path, sep, engine, header):
 
 
 def write_to_hdfs(sep, option_to_run, *args):
+    # print(sep)
+    # print(option_to_run.to_csv())
+    # print(*args)
+
     import tensorflow_io
     import tensorflow as tf
 
@@ -47,9 +52,9 @@ def write_to_hdfs(sep, option_to_run, *args):
     hdfs_path = save_run_results + path_suffix
 
     str_args = [str(arg) for arg in args]
-    line_str = sep.join(str_args)
+    line_str = sep.join(str_args) + "\n"
 
-    with tf.io.gfile.GFile(hdfs_path, "w") as f:
+    with tf.io.gfile.GFile(hdfs_path, "a") as f:     # a - append, w - overwrite
         f.write(line_str)
     #append_to_file(spark, line_str, hdfs_path)
     # df = spark.createDataFrame(data=[line_str], schema=["all_cols"])
@@ -71,7 +76,7 @@ def save_all_args_to_file(option_to_run, *args):
     if not hdfs_run:
         write_to_file(*args, sep=',', file_path=save_optuna_results_file)
     else:
-        write_to_hdfs(sep=',', option_to_run=option_to_run, *args)
+        write_to_hdfs(',', option_to_run, *args)
 
 
 def load_model(model_name, dataset, path):

@@ -36,7 +36,9 @@ def test(model, data_loader, criterion, device):
     test_loss_sum = torch.zeros(1, device=device)
     test_set_size = 0
 
-    auc = auroc.BinaryAUROC()
+    ys = []
+    targets = []
+    auc = auroc.AUROC(task="binary")  # BinaryAUROC()
 
     with torch.no_grad():
         for fields, target in data_loader:   # tqdm.tqdm(..., smoothing=0, mininterval=1.0):
@@ -44,11 +46,13 @@ def test(model, data_loader, criterion, device):
             y, _ = model(fields)
             test_loss_sum += criterion(y, target) * target.shape[0]
             test_set_size += target.shape[0]
-            auc.update(y, target)
+            ys.append(y)
+            targets.append(target.type(torch.IntTensor))
+            #auc.update(y, target)
 
     loss = test_loss_sum.item() / test_set_size
     # ctr_loss, half_loss = get_baselines_log_loss(all_targets) # compute this with sums
-    auc_res = auc.compute().item()
+    auc_res = auc(torch.cat(ys), torch.cat(targets)).item()  # auc.compute().item()
 
     return loss, auc_res   # loss can be logloss or mse
 
@@ -80,7 +84,7 @@ def main(dataset_name, dataset_paths, option_to_run, epoch, criterion_name, weig
         train_time = train_wrapper(model, optimizer, train_data_loader, criterion, device, option_to_run)
 
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
-        save_all_args_to_file(study_name, option_to_run, option_to_run.to_csv(), trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, criterion_name)
+        save_all_args_to_file(option_to_run, study_name, option_to_run.to_csv(), trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, criterion_name)
         best_error.update(valid_err, valid_auc)
         prune_running_if_needed(trial, valid_err, epoch_i)
 
@@ -107,5 +111,3 @@ def top_main_for_option_run(study, trial, device_ind, option_to_run):
     criterion_name = 'mse' if 'movielens' in train_valid_test_paths[0] else 'bcelogitloss'
     valid_err, valid_auc = main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0, device_str, study, trial)
     return valid_err if option_to_run.met_to_opt != auc else valid_auc
-
-

@@ -27,11 +27,14 @@ reg_param = "reg_param"
 
 debug_print = False
 sparseGrads = True
-epochs_num = 10
+epochs_num = 20
 # batch_size = 256
 # top_k_percent = 0.05
 weight_decay = 0
-use_regularization = False
+
+#base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
+#path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
+#hdfs_run = False
 
 base_path_project = "hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments/data"
 path_torchfm = "/pytorch-fm/src/torchfm".format(base_path_project)
@@ -60,4 +63,3 @@ torch_global_seed = 0
 python_random_seed = 0
 
 hdfs_run = True
-

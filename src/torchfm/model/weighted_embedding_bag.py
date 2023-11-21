@@ -65,7 +65,8 @@ class WeightedEmbeddingBag(nn.Module):
             return input[i, j, k]
 
         score = batch_gather(padded_summed, padded_offsets[:, 1:]) - batch_gather(padded_summed, padded_offsets[:, :-1])
-        return score if not return_l2 else (score, self.get_l2_reg(embeddings))
+        reg = self.get_l2_reg(embeddings) if return_l2 else 0.0
+        return score, reg
 
 
 class CompatibleWeightedEmbeddingBag(WeightedEmbeddingBag):
@@ -89,4 +90,5 @@ class CompatibleEmbedding(nn.Embedding):
 
     def forward(self, input, return_l2=False):
         embeddings = super(CompatibleEmbedding, self).forward(input)
-        return (embeddings, self.get_l2_reg(embeddings)) if return_l2 else embeddings
+        reg = self.get_l2_reg(embeddings) if return_l2 else 0.0
+        return embeddings, reg

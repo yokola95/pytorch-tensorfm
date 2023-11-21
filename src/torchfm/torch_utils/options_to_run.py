@@ -31,8 +31,9 @@ class Option2Run:
     return_l2 = None
     reg_coef_vectors = None
     reg_coef_biases = None
+    part_id = None
 
-    def __init__(self, m_to_check, met_to_opt, rank, emb_size, lr, opt_name, batch_size, reg_coef_vectors, reg_coef_biases):
+    def __init__(self, m_to_check, met_to_opt, rank, emb_size, lr, opt_name, batch_size, reg_coef_vectors, reg_coef_biases, part_id):
         self.m_to_check = m_to_check
         self.met_to_opt = met_to_opt
         self.rank = rank
@@ -42,10 +43,12 @@ class Option2Run:
         self.batch_size = batch_size
         self.reg_coef_vectors = reg_coef_vectors
         self.reg_coef_biases = reg_coef_biases
-        self.return_l2 = float(self.reg_coef_vectors) == 0.0 and float(self.reg_coef_biases) == 0.0
+        self.part_id = part_id
+        self.return_l2 = float(self.reg_coef_vectors) != 0.0 or float(self.reg_coef_biases) != 0.0
 
     def to_csv(self):
-        ",".join([str(i) for i in [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name, self.batch_size, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases]])
+        res = ",".join([str(i) for i in [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name, self.batch_size, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases, self.part_id]])
+        return res
 
 
 def tuple_to_option2run(tpl):

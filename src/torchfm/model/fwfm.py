@@ -31,10 +31,11 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
 
     def calc_linear_term(self, x, return_l2=False):
         # Biases (field weights)
-        biases_sum = self.bias(x).squeeze().sum(-1)  # (batch_size, 1)
+        biases_x, _ = self.bias(x)
+        biases_sum = biases_x.squeeze().sum(-1)  # (batch_size, 1)
         score = self.w0 + biases_sum  # (batch_size, 1)
         if return_l2:
-            lin_reg = self.bias(x).square().mean(0).sum() + torch.square(self.w0)
+            lin_reg = biases_x.square().mean(0).sum() + torch.square(self.w0)
             return score, lin_reg
         else:
             return score, 0.0
@@ -45,7 +46,7 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
         :param return_l2: flag showing whther to return l2 regularization term
         """
         # Embedding layer
-        emb = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
+        emb, _ = self.embeddings(x)  # (batch_size, num_fields, embedding_dim)
 
         # linear term = global bias and biases per feature (field weights)
         lin_term, lin_reg = self.calc_linear_term(x, return_l2)   # (batch_size, 1)

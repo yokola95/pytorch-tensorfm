@@ -6,8 +6,7 @@ import torch
 from pyspark.sql import SparkSession
 from torch.utils.data import DataLoader
 
-from src.torchfm.torch_utils.constants import debug_print, use_regularization, torch_global_seed, python_random_seed, \
-    tmp_save_dir
+from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed
 from src.torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
@@ -236,14 +235,6 @@ class BestError:
     def update(self, tmp_logloss, tmp_auc):
         self.best_auc = tmp_auc if tmp_auc > self.best_auc else self.best_auc
         self.best_logloss = tmp_logloss if tmp_logloss < self.best_logloss else self.best_logloss
-
-
-def regularization_term(mdl, l2_coef):
-    if use_regularization:
-        l2_reg = sum(p.norm(2) for p in mdl.parameters())
-        return l2_coef * l2_reg
-    else:
-        return torch.tensor(0.)
 
 
 def get_from_queue(q):

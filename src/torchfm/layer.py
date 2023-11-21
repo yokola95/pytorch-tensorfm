@@ -19,12 +19,10 @@ class FeaturesLinear(torch.nn.Module):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
-        embed, reg = self.fc(x, return_l2) if return_l2 else self.fc(x, return_l2), 0.0
+        embed, reg = self.fc(x, return_l2)
         score = torch.sum(embed, dim=1) + self.bias
-        if return_l2:
-            return score, (torch.square(self.bias) + reg)
-        else:
-            return score
+        reg = (torch.square(self.bias) + reg) if return_l2 else 0.0
+        return score, reg
 
 
 class FeaturesEmbedding(torch.nn.Module):

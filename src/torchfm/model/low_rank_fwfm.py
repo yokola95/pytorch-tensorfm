@@ -36,5 +36,5 @@ class LowRankFieldWeightedFactorizationMachineModel(BaseFieldWeightedFactorizati
 
     def get_l2_reg(self, emb):
         base_reg = super(LowRankFieldWeightedFactorizationMachineModel, self).get_l2_reg(emb)
-        iter_reg = self.field_inter_weights.square().mean() / 2
+        iter_reg = self.U.square().mean() + self.diag_e.square().mean()
         return base_reg + iter_reg
