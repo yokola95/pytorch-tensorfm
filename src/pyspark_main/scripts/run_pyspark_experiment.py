@@ -23,8 +23,8 @@ def run_training_models(spark: SparkSession):
             yield [row.model, row.metric_to_opt, row.rank_prm, row.emb_size, row.lr, row.opt_name, row.batch_size, row.reg_coef_vectors, row.reg_coef_biases]
 
     df = create_df_options_to_run(spark)
-    res_df = df.rdd.mapPartitions(process_data)  #.toDF(df_columns)
-    print(res_df.count())  # check rdd size / count./length ...
+    res_rdd = df.rdd.mapPartitions(process_data)
+    print(res_rdd.count())
 
 
 if __name__ == '__main__':
