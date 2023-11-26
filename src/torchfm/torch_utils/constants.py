@@ -45,7 +45,7 @@ test_datasets_path_avazu = "{}/test-datasets/avazu".format(base_path_project)
 test_datasets_path_criteo = "{}/test-datasets/criteo".format(base_path_project)
 test_datasets_path = test_datasets_path_criteo
 
-default_base_filename = 'train1M'
+default_base_filename = 'train'  #'train1M'
 
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
 
@@ -61,5 +61,6 @@ optuna_journal_log_pruned_fwfm = f"{tmp_save_dir}/optuna_journal_log_pruned_fwfm
 
 torch_global_seed = 0
 python_random_seed = 0
+use_batch_iterator = True
 
 hdfs_run = True

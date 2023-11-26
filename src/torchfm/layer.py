@@ -21,7 +21,7 @@ class FeaturesLinear(torch.nn.Module):
         """
         embed, reg = self.fc(x, return_l2)
         score = torch.sum(embed, dim=1) + self.bias
-        reg = (torch.square(self.bias) + reg) if return_l2 else 0.0
+        reg = reg if return_l2 else 0.0   # global bias is not a part of teh regularization: torch.square(self.bias)
         return score, reg
 
 

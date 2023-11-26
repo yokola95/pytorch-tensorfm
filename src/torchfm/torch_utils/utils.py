@@ -6,7 +6,8 @@ import torch
 from pyspark.sql import SparkSession
 from torch.utils.data import DataLoader
 
-from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed
+from src.torchfm.torch_utils.batch_iterator import batch_iter_dataset
+from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, use_batch_iterator
 from src.torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
@@ -101,10 +102,17 @@ def get_datasets(dataset_name, dataset_paths):
     return train_dataset, valid_dataset, test_dataset
 
 
-def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers):
-    train_data_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
-    valid_data_loader = DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
-    test_data_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+def get_dataloader(dataset, batch_size, num_workers, device, shuffle):
+    if use_batch_iterator:
+        return batch_iter_dataset(dataset, device, batch_size, shuffle=shuffle)
+    else:
+        return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+
+
+def get_dataloaders(train_dataset, valid_dataset, test_dataset, batch_size, num_workers, device):
+    train_data_loader = get_dataloader(train_dataset, batch_size, device, num_workers, shuffle=True)   #DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+    valid_data_loader = get_dataloader(valid_dataset, batch_size, device, num_workers, shuffle=False)  #DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
+    test_data_loader = get_dataloader(valid_dataset, batch_size, device, num_workers, shuffle=False)   #DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
     return train_data_loader, valid_data_loader, test_data_loader
 
 

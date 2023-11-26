@@ -72,7 +72,7 @@ def main(dataset_name, dataset_paths, option_to_run, epoch, criterion_name, weig
     trial_number = trial.number if trial is not None else 0
 
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_name, dataset_paths)
-    train_data_loader, valid_data_loader, test_data_loader = get_dataloaders(train_dataset, valid_dataset, test_dataset, option_to_run.batch_size, num_workers)
+    train_data_loader, valid_data_loader, test_data_loader = get_dataloaders(train_dataset, valid_dataset, test_dataset, option_to_run.batch_size, num_workers, device)
 
     model = get_model(option_to_run.m_to_check, train_dataset, option_to_run.rank, option_to_run.emb_size).to(device)
     criterion = get_criterion(criterion_name)
@@ -86,8 +86,11 @@ def main(dataset_name, dataset_paths, option_to_run, epoch, criterion_name, weig
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
         save_all_args_to_file(option_to_run, study_name, option_to_run.to_csv(), trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, criterion_name)
         best_error.update(valid_err, valid_auc)
-        prune_running_if_needed(trial, valid_err, epoch_i)
+        train_data_loader, valid_data_loader, test_data_loader = get_dataloaders(train_dataset, valid_dataset,
+                                                                                 test_dataset, option_to_run.batch_size,
+                                                                                 num_workers, device)
 
+        prune_running_if_needed(trial, valid_err, epoch_i)
         early_stopper(valid_err)
         if early_stopper.early_stop:
             print(f'early stopped validation: best error: {early_stopper.best_loss}')
@@ -95,9 +98,6 @@ def main(dataset_name, dataset_paths, option_to_run, epoch, criterion_name, weig
 
     valid_err, valid_auc, test_err, test_auc, _ = valid_test(model, valid_data_loader, test_data_loader, criterion, device)
     print_msg(f'valid error: {valid_err} test error: {test_err}')
-
-    # save_model(model, model_name + ' ' + str(trial_number) + ' ' + opt_name, epoch, criterion, learning_rate, opt_name, valid_err)
-    # save_tensor(model.field_inter_weights, "fwfm_0157_8")
 
     return best_error.best_logloss, best_error.best_auc
 

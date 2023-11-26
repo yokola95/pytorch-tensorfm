@@ -5,7 +5,7 @@ from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, f
 models_to_check_w_ranks = [lowrank_fwfm, pruned_fwfm]
 models_to_check_w_no_ranks = [fm, fwfm]
 models_to_check = models_to_check_w_ranks + models_to_check_w_no_ranks
-metrics_to_optimize = [logloss, auc]
+metrics_to_optimize = [logloss]   # [logloss, auc]   # Does not matter in grid search
 ranks_to_check = [1, 2, 3, 4, 5]
 emb_sizes = [8, 16]
 learning_rate = np.logspace(-4, -1, num=15).tolist()

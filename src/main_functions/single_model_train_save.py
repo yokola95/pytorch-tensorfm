@@ -10,14 +10,13 @@ def run_save_single_model():
     metric_to_optimize = "logloss"
     emb_size = 8
     rank_param = 5
-    # return_l2 = False
     study = None
     trial = None
     reg_coef_vectors = 0.01
     reg_coef_biases = 0.01
 
     from src.torchfm.torch_utils.options_to_run import Option2Run
-    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, learning_rate, opt_name, batch_size, reg_coef_vectors, reg_coef_biases)
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, learning_rate, opt_name, batch_size, reg_coef_vectors, reg_coef_biases, 0)
 
     top_main_for_option_run(study, trial, device_ind, option_to_run)
 
@@ -57,4 +56,3 @@ def show_image(arr):
 #show_image(arr)
 
 # run_save_single_model()
-

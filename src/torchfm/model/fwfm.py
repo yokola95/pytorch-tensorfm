@@ -35,7 +35,7 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
         biases_sum = biases_x.squeeze().sum(-1)  # (batch_size, 1)
         score = self.w0 + biases_sum  # (batch_size, 1)
         if return_l2:
-            lin_reg = biases_x.square().mean(0).sum() + torch.square(self.w0)
+            lin_reg = biases_x.square().mean(0).sum()     # + torch.square(self.w0)   no need to add global bias to the regularization
             return score, lin_reg
         else:
             return score, 0.0
@@ -59,7 +59,7 @@ class BaseFieldWeightedFactorizationMachineModel(nn.Module):
 
         # Combine field interactions and factorization interactions
         output = lin_term + factorization_interactions
-        total_reg = [lin_reg, reg]
+        total_reg = [reg, lin_reg]
 
         return output, total_reg  # (batch_size, 1)
 
