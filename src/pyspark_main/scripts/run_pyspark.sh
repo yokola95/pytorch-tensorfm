@@ -5,6 +5,7 @@
 
 # Ariel's project  https://git.ouryahoo.com/haifa-labs-mail/Geonosis/tree/dev
 
+# queue gpu_v100
 export QUEUE=default
 export BASE_PATH=hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments
 export SRC_PATH=${BASE_PATH}/src
@@ -14,7 +15,7 @@ ${SPARK_HOME}/bin/spark-submit \
 --master yarn \
 --deploy-mode cluster \
 --queue ${QUEUE} \
---executor-memory 10G \
+--executor-memory 25G \
 --driver-memory 15G \
 --conf spark.oath.dockerImage=ml/rhel8_mlbundle:2021.12.1 \
 --conf spark.driver.memoryOverhead=10G \
@@ -28,4 +29,4 @@ ${SPARK_HOME}/bin/spark-submit \
 ${SRC_PATH}/run_pyspark_experiment.py
 
 #--conf spark.driver.resource.gpu.amount=1 \
-#
+#  ml/rhel8_mlbundle:2023.03.9

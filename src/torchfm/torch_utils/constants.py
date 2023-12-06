@@ -45,7 +45,7 @@ test_datasets_path_avazu = "{}/test-datasets/avazu".format(base_path_project)
 test_datasets_path_criteo = "{}/test-datasets/criteo".format(base_path_project)
 test_datasets_path = test_datasets_path_criteo
 
-default_base_filename = 'train'  #'train1M'
+default_base_filename = 'train1M'  #'train'
 
 original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
 
