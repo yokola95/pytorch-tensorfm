@@ -52,7 +52,7 @@ def test(model, data_loader, criterion, device):
 
     loss = test_loss_sum.item() / test_set_size
     # ctr_loss, half_loss = get_baselines_log_loss(all_targets) # compute this with sums
-    auc_res = auc(torch.cat(ys), torch.cat(targets)).item()  # auc.compute().item()
+    auc_res = auc(torch.cat(ys).to(device), torch.cat(targets).to(device)).item()  # auc.compute().item()
 
     return loss, auc_res   # loss can be logloss or mse
 
