@@ -29,5 +29,8 @@ ${SPARK_HOME}/bin/spark-submit \
 --py-files ${SRC_PATH}/src.zip \
 ${SRC_PATH}/run_pyspark_experiment.py
 
-# \
+#
 #  ml/rhel8_mlbundle:2023.03.9
+
+#--conf spark.pyspark.python=/opt/vz/1.0/bin/python \
+#--conf spark.pyspark.driver.python=/opt/vz/1.0/bin/python \
