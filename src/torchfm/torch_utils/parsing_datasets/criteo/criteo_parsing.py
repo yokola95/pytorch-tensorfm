@@ -8,6 +8,7 @@ import torch
 from math import floor, log
 
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
+from src.torchfm.torch_utils.constants import test_datasets_path, original_input_file_path
 from src.torchfm.torch_utils.io_utils import get_train_validation_test_paths, get_train_validation_test_preprocessed_paths
 from src.torchfm.torch_utils.utils import get_absolute_sizes
 
@@ -46,7 +47,7 @@ class CriteoParsing:
     def save_dataset(self, df, save_file_path):
         df.to_csv(save_file_path, sep='\t', header=True, index=False)
 
-    def split_to_datasets_save(self, data_file_path: str, rel_sizes: Sequence[int], save_paths: Sequence[str]):
+    def split_to_datasets_save(self, data_file_path: str, rel_sizes: list[float], save_paths: Sequence[str]):
         df = self.read_dataset_orig(data_file_path)
         total_len = len(df.index)
 
@@ -199,12 +200,12 @@ class CriteoParsing:
         self.save_dataset(new_df, save_to_path)
 
     def split(self):
-        split_to_paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)
+        split_to_paths = get_train_validation_test_paths(test_datasets_path)
         train_validation_test_rel_sizes = [0.8, 0.1, 0.1]
         self.split_to_datasets_save(original_input_file_path, train_validation_test_rel_sizes, split_to_paths)
 
     def fit(self):
-        paths = get_train_validation_test_paths(test_datasets_path, default_base_filename)
+        paths = get_train_validation_test_paths(test_datasets_path)
         train_dataset_path = paths[0]   # 0 index file to train  '../torchfm/test-datasets/train100K_train.txt'
 
         df = self.read_dataset(train_dataset_path)
@@ -215,8 +216,8 @@ class CriteoParsing:
         self.calc_save_global_index_value_mapping(df)
 
     def transform(self):
-        from_files = get_train_validation_test_paths(test_datasets_path, default_base_filename)
-        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+        from_files = get_train_validation_test_paths(test_datasets_path)
+        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path)
         assert len(from_files) == len(to_files)
 
         for ind in range(len(from_files)):
@@ -247,7 +248,7 @@ class CriteoParsing:
         CriteoParsing.do_action("transform")
 
     def get_ctr(self, ind):
-        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path, default_base_filename)
+        to_files = get_train_validation_test_preprocessed_paths(test_datasets_path)
         res = []
         for path in to_files:
             wrapper = WrapperDataset(path)

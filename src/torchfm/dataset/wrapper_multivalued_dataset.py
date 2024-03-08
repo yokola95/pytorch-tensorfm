@@ -30,8 +30,8 @@ class WrapperMultivaluedDataset(torch.utils.data.Dataset):
         num_columns = len(data.columns)
         global_offsets = list(range(num_columns - 1))
 
-        self.weights = data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_weights(x, self.max_length, num_columns - 1)).to_numpy()
-        self.offsets = data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_offsets(x, num_columns - 2, global_offsets)).to_numpy()
+        self.weights = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_weights(x, self.max_length, num_columns - 1)).to_numpy())
+        self.offsets = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_offsets(x, num_columns - 2, global_offsets)).to_numpy())
 
         data[miltival_col_name] = data[miltival_col_name].apply(lambda x: x + [0] * (self.max_length - len(x)))
 
@@ -51,11 +51,11 @@ class WrapperMultivaluedDataset(torch.utils.data.Dataset):
     @staticmethod
     def _create_weights(lst, full_length, num_cols, align_val=0.0):
         length = len(lst)
-        weights =  [] if length == 0 else [1.0] * num_cols + [1.0 / length] * length + [align_val] * (full_length - length)
+        weights = np.empty if length == 0 else np.array([1.0] * num_cols + [1.0 / length] * length + [align_val] * (full_length - length))
         return weights
 
     @staticmethod
-    def _create_offsets(lst, num_cols, global_offsets): return global_offsets + [num_cols + len(lst)]
+    def _create_offsets(lst, num_cols, global_offsets): return np.array(global_offsets + [num_cols + len(lst)])
 
 
     # def __preprocess_target(self, target):

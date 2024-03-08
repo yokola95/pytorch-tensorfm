@@ -11,8 +11,8 @@ txt = ".txt"
 csv = ".csv"
 train = "train"
 validation = "validation"
-val = "val"
 test = "test"
+val = "val"
 fwfm = "fwfm"
 fm = 'fm'
 lowrank_fwfm = "lowrank_fwfm"
@@ -25,6 +25,10 @@ minimize = "minimize"
 maximize = "maximize"
 reg_param = "reg_param"
 
+criteo = "criteo"
+avazu = "avazu"
+movielens = "movielens"
+
 debug_print = False
 sparseGrads = True
 epochs_num = 20
@@ -32,18 +36,14 @@ epochs_num = 20
 # top_k_percent = 0.05
 weight_decay = 0
 
-#base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
-#path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
-#hdfs_run = False
 
-base_path_project = "hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments/data"
-path_torchfm = "/pytorch-fm/src/torchfm".format(base_path_project)
+base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
+#path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
+#base_path_project = "hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments/data"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
-test_datasets_path_movielens = "{}/test-datasets/movielens/ml-1m".format(base_path_project)
-test_datasets_path_avazu = "{}/test-datasets/avazu".format(base_path_project)
-test_datasets_path_criteo = "{}/test-datasets/criteo".format(base_path_project)
-test_datasets_path = test_datasets_path_criteo
+dataset_name = criteo
+test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
 default_base_filename = 'train1M'  #'train'
 
@@ -63,4 +63,4 @@ torch_global_seed = 0
 python_random_seed = 0
 use_batch_iterator = True
 
-hdfs_run = True
+hdfs_run = False

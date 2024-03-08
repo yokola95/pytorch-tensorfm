@@ -10,17 +10,19 @@ def option_to_file_name(option: Option2Run):
     return f"results_{option.part_id}"   #f"results_{option.m_to_check}_{option.met_to_opt}_{option.opt_name}_{option.emb_size}_{option.rank}"  # _{option.reg_coef_vectors}_{option.reg_coef_biases}
 
 
-def get_train_validation_test_preprocessed_paths(base_path, base_filename):
-    if 'movielens' in base_path:
-        return [os.path.join(base_path, file_type + csv) for file_type in [train, validation, test]]
-    elif 'avazu' in base_path:
-        return [os.path.join(base_path, "final_" + file_type + csv) for file_type in [train, val, test]]
-    else:  # criteo
-        return [os.path.join(base_path, base_filename + '_' + file_type + '_' + preprocessed + txt) for file_type in [train, validation, test]]
+def get_train_validation_test_preprocessed_paths(base_path):
+    return [os.path.join(base_path, file_type + csv) for file_type in [train, validation, test]]
+
+    #if 'movielens' in base_path:
+
+    # elif 'avazu' in base_path:
+    #     return [os.path.join(base_path, "final_" + file_type + csv) for file_type in [train, val, test]]
+    # else:  # criteo
+    #     return [os.path.join(base_path, base_filename + '_' + file_type + '_' + preprocessed + txt) for file_type in [train, validation, test]]
 
 
-def get_train_validation_test_paths(base_path, base_filename):
-    return [os.path.join(base_path, base_filename + '_' + file_type + txt) for file_type in [train, validation, test]]
+def get_train_validation_test_paths(base_path):
+    return [os.path.join(base_path, file_type + txt) for file_type in [train, validation, test]]
 
 
 def read_df_from_hdfs(dataset_path, sep, engine, header):
