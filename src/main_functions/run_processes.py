@@ -39,8 +39,8 @@ lst_naama = all_options_for_studies[36:]
 # Use: 'tmux attach'   to run session to run the python from
 # ctrl B, D   --- to disconnect
 
-# sys.path.append('/home/viderman/persistent_drive/pytorch-fm')
-#export PYTHONPATH=$PYTHONPATH:/home/viderman/persistent_drive/pytorch-fm
+# sys.path.append('/home/viderman/persistent_drive/pytorch-fm/src')
+#export PYTHONPATH=$PYTHONPATH:/home/viderman/persistent_drive/pytorch-fm/src
 
 if __name__ == '__main__':
 
