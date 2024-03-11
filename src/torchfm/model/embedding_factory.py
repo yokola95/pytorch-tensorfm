@@ -1,3 +1,5 @@
+import torch
+
 from src.torchfm.model.weighted_embedding_bag import CompatibleWeightedEmbeddingBag, CompatibleEmbedding
 
 
@@ -8,4 +10,6 @@ class EmbeddingFactory:
                                    sparse=sparse) if not is_multival else CompatibleWeightedEmbeddingBag(16, 11,
                                                                                                          num_embed,
                                                                                                          emb_dim,
+                                                                                                         device=None,
+                                                                                                         dtype=torch.float32,
                                                                                                          sparse=sparse)

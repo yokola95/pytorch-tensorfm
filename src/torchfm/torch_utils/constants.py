@@ -32,24 +32,29 @@ movielens = "movielens"
 debug_print = False
 sparseGrads = True
 epochs_num = 20
-# batch_size = 256
+batch_sizes_to_check = [1024]
+emb_sizes = [4, 8]
 # top_k_percent = 0.05
 weight_decay = 0
+coef_vectors_max = 1e-4
+coef_vectors_min = 0.0
+coef_biases_max = 1e-4
+coef_biases_min = 0.0
 
+models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
+metrics_to_optimize = [logloss, auc]
+ranks_to_check = [1, 2, 3, 4, 5]
+device_inds = list(range(4)) * 2
 
 base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
 #path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
 #base_path_project = "hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments/data"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
-dataset_name = criteo
+dataset_name = movielens
 test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
-default_base_filename = 'train1M'  #'train'
-
-original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)
-
-optuna_num_trials = 10
+optuna_num_trials = 30
 debug_info_file = f"{tmp_save_dir}/debug_info.txt"
 save_optuna_results_file = f"{tmp_save_dir}/optuna_results.txt"
 save_run_results = f"{tmp_save_dir}/run_results/"
@@ -64,3 +69,7 @@ python_random_seed = 0
 use_batch_iterator = True
 
 hdfs_run = False
+
+# preprocessing constants
+default_base_filename = 'train1M'  #'train'
+original_input_file_path = '{}/{}.txt'.format(test_datasets_path, default_base_filename)

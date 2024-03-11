@@ -189,7 +189,7 @@ class PrunedFieldWeightedFactorizationMachineModel(FieldWeightedFactorizationMac
         if self._topk <= 0:
             return 0.0
 
-        U=emb.transpose(-1, -2).clone(memory_format=torch.contiguous_format)
+        U = emb.transpose(-1, -2).clone(memory_format=torch.contiguous_format)
         UR = torch.matmul(U, self._R_sparse)
 
         factorization_interactions = 0.5 * (UR.transpose(-1, -2) * emb).sum([-1, -2])

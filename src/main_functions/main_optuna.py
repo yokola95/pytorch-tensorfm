@@ -3,17 +3,21 @@ import optuna
 from optuna.storages import JournalStorage, JournalFileStorage
 from main import top_main_for_option_run
 from src.torchfm.torch_utils.options_to_run import Option2Run
-from src.torchfm.torch_utils.constants import optuna_num_trials, logloss, mse, minimize, maximize
+from src.torchfm.torch_utils.constants import optuna_num_trials, logloss, mse, minimize, maximize, batch_sizes_to_check, \
+    coef_vectors_max, coef_biases_max, coef_vectors_min, coef_biases_min
 from src.torchfm.torch_utils.optuna_utils import get_journal_name, erase_content_journal
 from src.torchfm.torch_utils.utils import get_from_queue, set_torch_seed
 from src.torchfm.torch_utils.io_utils import write_debug_info
 
 def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size):
-    lr = trial.suggest_float('lr', 1e-4, 0.1, log=True)
+    lr = trial.suggest_float('lr', 1e-4, 0.2, log=True)
     opt_name = "adagrad"  #  trial.suggest_categorical("opt_name", ["adagrad"])  # , "sgd" # ["adam", "sparseadam"]  make issues with sparse/dense gradients
-    batch_size = 1024  #trial.suggest_int('batch_size', 100, 1000, log=True)
+    batch_size = trial.suggest_categorical("batch_size", batch_sizes_to_check)  #trial.suggest_int('batch_size', 100, 1000, log=True)
 
-    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, lr, opt_name, batch_size, 0.0, 0.0, 0.0)
+    coef_vectors = trial.suggest_float("coef_vectors", coef_vectors_min, coef_vectors_max)  # reg coef vectors
+    coef_biases = trial.suggest_float("coef_biases", coef_biases_min, coef_biases_max)  # reg coef biases
+
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, lr, opt_name, batch_size, coef_vectors, coef_biases, 0.0)
     return top_main_for_option_run(study, trial, device_ind, option_to_run)
 
 

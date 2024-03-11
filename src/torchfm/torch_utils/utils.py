@@ -5,7 +5,7 @@ import traceback
 import torch
 #from pyspark.sql import SparkSession
 
-from src.torchfm.torch_utils.batch_iterator import BatchIter, BatchIterMultiValued
+from src.torchfm.torch_utils.batch_iterator import BatchIter
 from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, dataset_name, movielens, criteo, avazu
 from src.torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
@@ -102,10 +102,7 @@ def get_datasets(dataset_name, dataset_paths):
 
 
 def get_iterator(dataset, batch_size, num_workers, device, shuffle):
-    if dataset_name == movielens:
-        return BatchIterMultiValued(dataset, device, batch_size, shuffle)
-    else:
-        return BatchIter(dataset, device, batch_size, shuffle)
+    return BatchIter(dataset, device, batch_size, shuffle)
     # DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
 
 

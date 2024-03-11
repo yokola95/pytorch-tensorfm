@@ -76,19 +76,20 @@ class CompatibleWeightedEmbeddingBag(WeightedEmbeddingBag):
         self.o_l = o_l     # offsets length
 
     def forward(self, gen_input, return_l2=False):
-        input, offsets, per_sample_weights = gen_input[..., 0:self.in_l].long(), gen_input[..., self.in_l:(self.in_l + self.o_l)].long(), gen_input[..., (self.in_l+self.o_l):]
+        input, offsets, per_sample_weights = gen_input  # gen_input[..., 0:self.in_l].long(), gen_input[..., self.in_l:(self.in_l + self.o_l)].long(), gen_input[..., (self.in_l+self.o_l):]
         return super(CompatibleWeightedEmbeddingBag, self).forward(input, offsets, per_sample_weights, return_l2)
 
 
 class CompatibleEmbedding(nn.Embedding):
 
     def __init__(self, num_embed, emb_dim, sparse):
-        super(CompatibleEmbedding, self).__init__(num_embed, emb_dim, sparse=sparse)
+        super(CompatibleEmbedding, self).__init__(num_embed, emb_dim, sparse=sparse, dtype=torch.float32)
 
     def get_l2_reg(self, embeddings):
         return embeddings.square().mean(0).sum()
 
     def forward(self, input, return_l2=False):
+        input = input[0]
         embeddings = super(CompatibleEmbedding, self).forward(input)
         reg = self.get_l2_reg(embeddings) if return_l2 else 0.0
         return embeddings, reg

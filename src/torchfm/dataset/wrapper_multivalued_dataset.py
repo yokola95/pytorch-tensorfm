@@ -45,14 +45,14 @@ class WrapperMultivaluedDataset(torch.utils.data.Dataset):
     def __len__(self):
         return self.targets.shape[0]
 
-    def __getitem__(self, index):
-        return np.concatenate((self.indices[index], self.offsets[index], self.weights[index]), axis=0, dtype='float32'), self.targets[index]
+    # def __getitem__(self, index):
+    #     return np.concatenate((self.indices[index], self.offsets[index], self.weights[index]), axis=0, dtype='float32'), self.targets[index]
 
     @staticmethod
     def _create_weights(lst, full_length, num_cols, align_val=0.0):
         length = len(lst)
         weights = np.empty if length == 0 else np.array([1.0] * num_cols + [1.0 / length] * length + [align_val] * (full_length - length))
-        return weights
+        return weights.astype(np.float32)
 
     @staticmethod
     def _create_offsets(lst, num_cols, global_offsets): return np.array(global_offsets + [num_cols + len(lst)])

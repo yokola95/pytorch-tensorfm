@@ -27,5 +27,5 @@ class WrapperDataset(torch.utils.data.Dataset):
     def __len__(self):
         return self.targets.shape[0]
 
-    def __getitem__(self, index):
-        return self.items[index], self.targets[index]
+    # def __getitem__(self, index):
+    #     return self.items[index], self.targets[index]

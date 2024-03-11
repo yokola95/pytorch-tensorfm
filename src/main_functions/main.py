@@ -10,11 +10,11 @@ from src.torchfm.torch_utils.utils import set_torch_seed, get_device_str, get_it
     get_criterion, get_optimizer, EarlyStopper, get_model, print_msg
 
 
-def train(model, optimizer, iterator, criterion, device, option_to_run):
+def train(model, optimizer, batch_iterator, criterion, device, option_to_run):
     model.train()
 
-    for fields, target in iterator.batches():
-        fields, target = fields.to(device), target.float().to(device)
+    for fields, target in batch_iterator:
+        fields, target = fields, target.float().to(device)  # .to(device)
         y, reg = model(fields, option_to_run.return_l2)    # return y,regularization_term_arr
         loss = criterion(y, target)
         total_reg = reg[0] * option_to_run.reg_coef_vectors + reg[1] * option_to_run.reg_coef_biases
@@ -31,7 +31,7 @@ def train_wrapper(model, optimizer, iterator, criterion, device, option_to_run):
     return end - start
 
 
-def test(model, iterator, criterion, device):
+def test(model, batch_iterator, criterion, device):
     model.eval()
     test_loss_sum = torch.zeros(1, device=device)
     test_set_size = 0
@@ -41,8 +41,8 @@ def test(model, iterator, criterion, device):
     auc = auroc.AUROC(task="binary")  # BinaryAUROC()
 
     with torch.no_grad():
-        for fields, target in iterator.batches():   # tqdm.tqdm(..., smoothing=0, mininterval=1.0):
-            fields, target = fields.to(device), target.float().to(device)
+        for fields, target in batch_iterator:   # tqdm.tqdm(..., smoothing=0, mininterval=1.0):
+            fields, target = fields, target.float().to(device)  # .to(device)
             y, _ = model(fields)
             test_loss_sum += criterion(y, target) * target.shape[0]
             test_set_size += target.shape[0]
