@@ -44,7 +44,7 @@ coef_biases_min = 0.0
 models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
 metrics_to_optimize = [logloss, auc]
 ranks_to_check = [1, 2, 3, 4, 5]
-device_inds = list(range(4)) * 2
+device_inds = list(range(4))
 
 base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
 #path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
