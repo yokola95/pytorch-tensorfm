@@ -19,8 +19,8 @@ class WrapperDataset(torch.utils.data.Dataset):
     def __init__(self, dataset_path, sep='\t', engine='c', header='infer'):
         data = read_pd_dataframe(dataset_path, sep, engine, header)
 
-        self.items = data.loc[:, data.columns != label].to_numpy()
-        self.targets = data.loc[:, label].to_numpy()
+        self.items = data.loc[:, data.columns != label].to_numpy().astype(np.int32)
+        self.targets = data.loc[:, label].to_numpy().astype(np.float32)
         self.field_dims = np.max(self.items)
         self.num_columns = len(self.items[0])
 

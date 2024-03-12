@@ -14,7 +14,7 @@ def train(model, optimizer, batch_iterator, criterion, device, option_to_run):
     model.train()
 
     for fields, target in batch_iterator:
-        fields, target = fields, target.float().to(device)  # .to(device)
+        fields, target = fields, target
         y, reg = model(fields, option_to_run.return_l2)    # return y,regularization_term_arr
         loss = criterion(y, target)
         total_reg = reg[0] * option_to_run.reg_coef_vectors + reg[1] * option_to_run.reg_coef_biases
