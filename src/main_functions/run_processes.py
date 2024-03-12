@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from multiprocessing import Process
 from main_optuna import run_all_for_device_ind
-from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, logloss, auc, mse, emb_sizes, models_to_check, metrics_to_optimize, ranks_to_check, device_inds
+from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, mse, emb_sizes, metrics_to_optimize, ranks_to_check, device_inds
 
 def generate_all_criteo_avazu_options():
     all_options_for_studies = [(m_to_check, met_to_opt, rank, emb_size) for m_to_check in [lowrank_fwfm, pruned_fwfm]
@@ -29,10 +29,11 @@ def generate_movielens_options():
 movielens_options_studies = generate_movielens_options()
 
 
-lst_michael = all_options_for_studies[0:12]
-lst_oren = all_options_for_studies[12:24]
-lst_ariel = all_options_for_studies[24:36]
-lst_naama = all_options_for_studies[36:]
+lst_michael = all_options_for_studies[0:10]
+lst_oren = all_options_for_studies[10:20]
+lst_alex = all_options_for_studies[20:30]
+lst_ariel = all_options_for_studies[30:40]
+lst_naama = all_options_for_studies[40:]
 
 
 # 8 processes

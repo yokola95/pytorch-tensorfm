@@ -33,7 +33,7 @@ debug_print = False
 sparseGrads = True
 epochs_num = 20
 batch_sizes_to_check = [1024]
-emb_sizes = [4, 8]
+emb_sizes = [8, 16]
 # top_k_percent = 0.05
 weight_decay = 0
 coef_vectors_max = 1e-4
@@ -54,7 +54,7 @@ tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 dataset_name = movielens
 test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
-optuna_num_trials = 30
+optuna_num_trials = 50
 debug_info_file = f"{tmp_save_dir}/debug_info.txt"
 save_optuna_results_file = f"{tmp_save_dir}/optuna_results.txt"
 save_run_results = f"{tmp_save_dir}/run_results/"
