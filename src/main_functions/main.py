@@ -63,11 +63,14 @@ def valid_test(model, valid_iterator, test_iterator, criterion, device):
     return valid_err, valid_auc, test_err, test_auc, end - start
 
 
-def main(dataset_nm, dataset_paths, option_to_run, epoch, criterion_name, weight_decay, device, study=None, trial=None):
+def main(dataset_nm, dataset_paths, option_to_run, epoch, criterion_name, weight_decay, device, study=None, trial=None, random_seed=42):
     num_workers = 0
     device = torch.device(device)
     study_name = study.study_name if study is not None else ""
     trial_number = trial.number if trial is not None else 0
+
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed)
 
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_nm, dataset_paths)
     train_iterator, valid_iterator, test_iterator = get_iterators(train_dataset, valid_dataset, test_dataset, option_to_run.batch_size, num_workers, device)

@@ -26,8 +26,11 @@ def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, devic
     journal_name = get_journal_name(model_name, metric_to_optimize, rank_param, emb_size)
     erase_content_journal(journal_name)
     storage = JournalStorage(JournalFileStorage(journal_name))
-    study = optuna.create_study(study_name=f"Study {model_name} {metric_to_optimize} {rank_param} {emb_size}", storage=storage,
-                                direction=(minimize if metric_to_optimize in [logloss, mse] else maximize))
+    study = optuna.create_study(study_name=f"Study {model_name} {metric_to_optimize} {rank_param} {emb_size}",
+                                storage=storage,
+                                direction=(minimize if metric_to_optimize in [logloss, mse] else maximize),
+                                pruner=optuna.pruners.NopPruner(),
+                                sampler=optuna.samplers.TPESampler(seed=42))
 
     study.optimize(lambda trial: objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size), n_trials=optuna_num_trials)
 
