@@ -64,8 +64,9 @@ optuna_journal_log_fwfm = f"{tmp_save_dir}/optuna-journal_fwfm"
 optuna_journal_log_lr_fwfm = f"{tmp_save_dir}/optuna-journal_lr_fwfm"
 optuna_journal_log_pruned_fwfm = f"{tmp_save_dir}/optuna_journal_log_pruned_fwfm"
 
-torch_global_seed = 0
-python_random_seed = 0
+torch_global_seed = 42
+python_random_seed = 42
+optuna_seed = 42
 use_batch_iterator = True
 
 hdfs_run = False
