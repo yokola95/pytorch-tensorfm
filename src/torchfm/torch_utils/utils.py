@@ -3,6 +3,7 @@ import os
 import numpy as np
 import traceback
 import torch
+import sys
 #from pyspark.sql import SparkSession
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
@@ -232,7 +233,7 @@ class LossCalc:
 
 class BestError:
     best_auc = 0.0
-    best_logloss = 1.0
+    best_logloss = sys.float_info.max
 
     def __init__(self):
         pass
