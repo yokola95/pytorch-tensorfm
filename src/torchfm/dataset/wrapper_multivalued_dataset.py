@@ -30,8 +30,8 @@ class WrapperMultivaluedDataset(torch.utils.data.Dataset):
         num_columns = len(data.columns)
         global_offsets = list(range(num_columns - 1))
 
-        self.weights = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_weights(x, self.max_length, num_columns - 1)).to_numpy())
-        self.offsets = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_offsets(x, num_columns - 2, global_offsets)).to_numpy())
+        self.weights = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_weights(x, self.max_length, num_columns - 1)).to_numpy()).astype(np.float32)
+        self.offsets = np.vstack(data[miltival_col_name].apply(lambda x: WrapperMultivaluedDataset._create_offsets(x, num_columns - 2, global_offsets)).to_numpy()).astype(np.int32)
 
         data[miltival_col_name] = data[miltival_col_name].apply(lambda x: x + [0] * (self.max_length - len(x)))
 
