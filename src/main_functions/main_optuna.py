@@ -4,7 +4,7 @@ from optuna.storages import JournalStorage, JournalFileStorage
 from main import top_main_for_option_run
 from src.torchfm.torch_utils.options_to_run import Option2Run
 from src.torchfm.torch_utils.constants import optuna_num_trials, logloss, mse, minimize, maximize, batch_sizes_to_check, \
-    coef_vectors_max, coef_biases_max, coef_vectors_min, coef_biases_min
+    coef_vectors_max, coef_biases_max, coef_vectors_min, coef_biases_min, optuna_seed
 from src.torchfm.torch_utils.optuna_utils import get_journal_name, erase_content_journal
 from src.torchfm.torch_utils.utils import get_from_queue, set_torch_seed
 from src.torchfm.torch_utils.io_utils import write_debug_info
@@ -30,7 +30,7 @@ def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, devic
                                 storage=storage,
                                 direction=(minimize if metric_to_optimize in [logloss, mse] else maximize),
                                 pruner=optuna.pruners.NopPruner(),
-                                sampler=optuna.samplers.TPESampler(seed=42))
+                                sampler=optuna.samplers.TPESampler(seed=optuna_seed))
 
     study.optimize(lambda trial: objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size), n_trials=optuna_num_trials)
 

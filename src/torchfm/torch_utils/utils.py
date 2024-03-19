@@ -252,7 +252,8 @@ def get_from_queue(q):
 
 def set_torch_seed():
     torch.manual_seed(torch_global_seed)
-    torch.cuda.manual_seed(torch_global_seed)
+    # torch.cuda.manual_seed(torch_global_seed)
+    torch.cuda.manual_seed_all(torch_global_seed)
 
     random.seed(python_random_seed)
     np.random.seed(python_random_seed)
