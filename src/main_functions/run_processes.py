@@ -47,16 +47,13 @@ movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'ms
 
 if __name__ == '__main__':
 
-    # queue = mp.Queue()
-    # for tpl in lst_michael:
-    #     queue.put(tpl)
-    #
-    # processes = [Process(target=run_all_for_device_ind, args=(queue, dev_ind), daemon=True) for dev_ind in device_inds]
-    #
-    # [p.start() for p in processes]
-    # print("Started!!!!")
-    # [p.join() for p in processes]
-    # print("Ended!!!!")
-    lst = generate_movielens_options()
-    print(lst)
-    print(len(lst))
+    queue = mp.Queue()
+    for tpl in lst_michael:
+        queue.put(tpl)
+
+    processes = [Process(target=run_all_for_device_ind, args=(queue, dev_ind), daemon=True) for dev_ind in device_inds]
+
+    [p.start() for p in processes]
+    print("Started!!!!")
+    [p.join() for p in processes]
+    print("Ended!!!!")
