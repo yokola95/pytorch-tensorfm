@@ -88,7 +88,7 @@ def get_dataset(name, path):
     elif name == criteo:
         return WrapperDataset(path)
     elif name == avazu:
-        return WrapperDataset(path)
+        return WrapperDataset(path, sep=',')
     elif name == 'wrapper':
         return WrapperDataset(path)
     else:
