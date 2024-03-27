@@ -4,10 +4,9 @@ import numpy as np
 import traceback
 import torch
 import sys
-#from pyspark.sql import SparkSession
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
-from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, dataset_name, movielens, criteo, avazu
+from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, avazu
 from src.torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
@@ -29,6 +28,7 @@ from src.torchfm.model.xdfm import ExtremeDeepFactorizationMachineModel
 from src.torchfm.model.afn import AdaptiveFactorizationNetwork
 from src.torchfm.model.fwfm import FieldWeightedFactorizationMachineModel, PrunedFieldWeightedFactorizationMachineModel
 from src.torchfm.model.low_rank_fwfm import LowRankFieldWeightedFactorizationMachineModel
+from src.torchfm.torch_utils.io_utils import write_debug_info
 
 
 def print_msg(*args):
@@ -88,7 +88,7 @@ def get_dataset(name, path):
     elif name == criteo:
         return WrapperDataset(path)
     elif name == avazu:
-        return WrapperDataset(path)
+        return WrapperDataset(path, sep=',')
     elif name == 'wrapper':
         return WrapperDataset(path)
     else:
