@@ -1,12 +1,12 @@
 import pandas as pd
 import os
 
-from src.torchfm.torch_utils.constants import test_datasets_path_movielens
+from src.torchfm.torch_utils.constants import test_datasets_path
 
 
 class MovielensParsing:
-    ml1M_dir = test_datasets_path_movielens
-    ml1M_trans_dir = test_datasets_path_movielens
+    ml1M_dir = test_datasets_path
+    ml1M_trans_dir = test_datasets_path
 
     def load_and_merge_ml(ml_dir):
         # load MovieLens data using encoding="ISO-8859-1" to avoid UnicodeDecodeError: 'utf-8' codec can't decode byte 0xe9

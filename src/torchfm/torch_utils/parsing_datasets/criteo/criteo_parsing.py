@@ -8,7 +8,7 @@ import torch
 from math import floor, log
 
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
-from src.torchfm.torch_utils.constants import test_datasets_path, original_input_file_path
+from src.torchfm.torch_utils.constants import test_datasets_path, original_input_file_path, frequent_values_pkl, label
 from src.torchfm.torch_utils.io_utils import get_train_validation_test_paths, get_train_validation_test_preprocessed_paths
 from src.torchfm.torch_utils.utils import get_absolute_sizes
 
@@ -223,10 +223,6 @@ class CriteoParsing:
         for ind in range(len(from_files)):
             self._transform(from_files[ind], to_files[ind])
 
-        #self.transform('../torchfm/test-datasets/train100K_train.txt', '../torchfm/test-datasets/train100K_train_preprocessed.txt')
-        #self.transform('../torchfm/test-datasets/train100K_validation.txt', '../torchfm/test-datasets/train100K_validation_preprocessed.txt')
-        #self.transform('../torchfm/test-datasets/train100K_test.txt', '../torchfm/test-datasets/train100K_test_preprocessed.txt')
-
 
     @staticmethod
     def do_action(action_str):
@@ -255,7 +251,3 @@ class CriteoParsing:
             ctr = sum(wrapper.targets) / len(wrapper.targets)
             res.append(ctr)
         return res[ind]
-
-
-
-

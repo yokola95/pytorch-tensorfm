@@ -7,7 +7,6 @@ import sys
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
 from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, avazu
-from src.torchfm.dataset.movielens import MovieLens1MDataset, MovieLens20MDataset
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
 from src.torchfm.model.afi import AutomaticFeatureInteractionModel
@@ -149,12 +148,12 @@ def get_model(name, dataset, rank_param, emb_size):
         return DeepCrossNetworkModel(num_features, embed_dim=16, num_layers=3, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'nfm':
         return NeuralFactorizationMachineModel(num_features, embed_dim=64, mlp_dims=(64,), dropouts=(0.2, 0.2))
-    elif name == 'ncf':
-        # only supports MovieLens dataset because for other datasets user/item colums are indistinguishable
-        assert isinstance(dataset, MovieLens20MDataset) or isinstance(dataset, MovieLens1MDataset)
-        return NeuralCollaborativeFiltering(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2,
-                                            user_field_idx=dataset.user_field_idx,
-                                            item_field_idx=dataset.item_field_idx)
+    # elif name == 'ncf':
+    #     # only supports MovieLens dataset because for other datasets user/item colums are indistinguishable
+    #     assert isinstance(dataset, MovieLens20MDataset) or isinstance(dataset, MovieLens1MDataset)
+    #     return NeuralCollaborativeFiltering(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2,
+    #                                         user_field_idx=dataset.user_field_idx,
+    #                                         item_field_idx=dataset.item_field_idx)
     elif name == 'fnfm':
         return FieldAwareNeuralFactorizationMachineModel(num_features, embed_dim=4, mlp_dims=(64,), dropouts=(0.2, 0.2))
     elif name == 'dfm':

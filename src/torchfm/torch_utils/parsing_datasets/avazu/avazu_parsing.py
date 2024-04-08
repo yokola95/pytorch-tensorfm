@@ -2,7 +2,7 @@ import pandas as pd
 import pickle
 from sklearn.model_selection import train_test_split
 
-from src.torchfm.torch_utils.constants import test_datasets_path_avazu
+from src.torchfm.torch_utils.constants import test_datasets_path
 
 
 class AvazuParsing:
@@ -10,9 +10,9 @@ class AvazuParsing:
     threshold = 10
     testRatio = 0.1
     valRatio = 0.1
-    train_raw_path = f"{test_datasets_path_avazu}/train_raw.csv"
-    test_raw_path = f"{test_datasets_path_avazu}/test_raw.csv"
-    val_raw_path = f"{test_datasets_path_avazu}/val_raw.csv"
+    train_raw_path = f"{test_datasets_path}/train_raw.csv"
+    test_raw_path = f"{test_datasets_path}/test_raw.csv"
+    val_raw_path = f"{test_datasets_path}/val_raw.csv"
 
     def swapColumns(self, dataFrame, col1, col2):
         cols = dataFrame.columns.tolist()
@@ -181,9 +181,9 @@ def process_data():
 
     avazu_parsing.fit(raw_train)
 
-    avazu_parsing.transform(raw_train, f"{test_datasets_path_avazu}/final_train.csv")
-    avazu_parsing.transform(raw_test, f"{test_datasets_path_avazu}/final_test.csv")
-    avazu_parsing.transform(raw_val, f"{test_datasets_path_avazu}/final_val.csv")
+    avazu_parsing.transform(raw_train, f"{test_datasets_path_avazu}/train.csv")
+    avazu_parsing.transform(raw_test, f"{test_datasets_path_avazu}/test.csv")
+    avazu_parsing.transform(raw_val, f"{test_datasets_path_avazu}/validation.csv")
 
 
 # process_data()

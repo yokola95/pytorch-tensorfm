@@ -13,6 +13,7 @@ def generate_all_criteo_avazu_options():
     all_options_for_studies.extend(all_option_for_studies_fm)
     return all_options_for_studies
 
+# for Criteo and Avazu
 all_options_for_studies = [('lowrank_fwfm', 'logloss', 1, 8), ('lowrank_fwfm', 'logloss', 1, 16), ('lowrank_fwfm', 'logloss', 2, 8), ('lowrank_fwfm', 'logloss', 2, 16), ('lowrank_fwfm', 'logloss', 3, 8), ('lowrank_fwfm', 'logloss', 3, 16), ('lowrank_fwfm', 'logloss', 4, 8), ('lowrank_fwfm', 'logloss', 4, 16), ('lowrank_fwfm', 'logloss', 5, 8), ('lowrank_fwfm', 'logloss', 5, 16), ('lowrank_fwfm', 'auc', 1, 8), ('lowrank_fwfm', 'auc', 1, 16), ('lowrank_fwfm', 'auc', 2, 8), ('lowrank_fwfm', 'auc', 2, 16), ('lowrank_fwfm', 'auc', 3, 8), ('lowrank_fwfm', 'auc', 3, 16), ('lowrank_fwfm', 'auc', 4, 8), ('lowrank_fwfm', 'auc', 4, 16), ('lowrank_fwfm', 'auc', 5, 8), ('lowrank_fwfm', 'auc', 5, 16), ('pruned_fwfm', 'logloss', 1, 8), ('pruned_fwfm', 'logloss', 1, 16), ('pruned_fwfm', 'logloss', 2, 8), ('pruned_fwfm', 'logloss', 2, 16), ('pruned_fwfm', 'logloss', 3, 8), ('pruned_fwfm', 'logloss', 3, 16), ('pruned_fwfm', 'logloss', 4, 8), ('pruned_fwfm', 'logloss', 4, 16), ('pruned_fwfm', 'logloss', 5, 8), ('pruned_fwfm', 'logloss', 5, 16), ('pruned_fwfm', 'auc', 1, 8), ('pruned_fwfm', 'auc', 1, 16), ('pruned_fwfm', 'auc', 2, 8), ('pruned_fwfm', 'auc', 2, 16), ('pruned_fwfm', 'auc', 3, 8), ('pruned_fwfm', 'auc', 3, 16), ('pruned_fwfm', 'auc', 4, 8), ('pruned_fwfm', 'auc', 4, 16), ('pruned_fwfm', 'auc', 5, 8), ('pruned_fwfm', 'auc', 5, 16), ('fwfm', 'logloss', 0, 8), ('fwfm', 'logloss', 0, 16), ('fwfm', 'auc', 0, 8), ('fwfm', 'auc', 0, 16), ('fm', 'logloss', 0, 8), ('fm', 'logloss', 0, 16), ('fm', 'auc', 0, 8), ('fm', 'auc', 0, 16)]
 
 # movielens
@@ -22,21 +23,12 @@ def generate_movielens_options():
     movielens_options.extend(movielens_options_fwfm_fm)
     return movielens_options
 
-
-lst_michael = all_options_for_studies[0:10]
-lst_oren = all_options_for_studies[10:20]
-lst_alex = all_options_for_studies[20:30]
-lst_ariel = all_options_for_studies[30:40]
-lst_naama = all_options_for_studies[40:]
-
-
 # for MovieLens
 movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'mse', 1, 16), ('lowrank_fwfm', 'mse', 2, 8), ('lowrank_fwfm', 'mse', 2, 16), ('lowrank_fwfm', 'mse', 3, 8), ('lowrank_fwfm', 'mse', 3, 16), ('lowrank_fwfm', 'mse', 4, 8), ('lowrank_fwfm', 'mse', 4, 16), ('lowrank_fwfm', 'mse', 5, 8), ('lowrank_fwfm', 'mse', 5, 16), ('pruned_fwfm', 'mse', 1, 8), ('pruned_fwfm', 'mse', 1, 16), ('pruned_fwfm', 'mse', 2, 8), ('pruned_fwfm', 'mse', 2, 16), ('pruned_fwfm', 'mse', 3, 8), ('pruned_fwfm', 'mse', 3, 16), ('pruned_fwfm', 'mse', 4, 8), ('pruned_fwfm', 'mse', 4, 16), ('pruned_fwfm', 'mse', 5, 8), ('pruned_fwfm', 'mse', 5, 16), ('fwfm', 'mse', 0, 8), ('fwfm', 'mse', 0, 16), ('fm', 'mse', 0, 8), ('fm', 'mse', 0, 16)]
-# lst_michael = movielens_options_studies[0:5]
-# lst_oren = movielens_options_studies[5:10]
-# lst_alex = movielens_options_studies[10:15]
-# lst_ariel = movielens_options_studies[15:17] # Ariel has 2 GPUs, not 4.
-# lst_naama = movielens_options_studies[17:]
+
+
+lst_tmp = all_options_for_studies[0:10]
+
 
 # 8 processes
 # Use: 'tmux attach'   to run session to run the python from
@@ -48,7 +40,7 @@ movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'ms
 if __name__ == '__main__':
 
     queue = mp.Queue()
-    for tpl in lst_michael:
+    for tpl in lst_tmp:
         queue.put(tpl)
 
     processes = [Process(target=run_all_for_device_ind, args=(queue, dev_ind), daemon=True) for dev_ind in device_inds]
