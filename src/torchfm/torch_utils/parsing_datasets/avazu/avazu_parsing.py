@@ -6,7 +6,7 @@ from src.torchfm.torch_utils.constants import test_datasets_path
 
 
 class AvazuParsing:
-    avazu_path = f"{test_datasets_path_avazu}/data_avazu.csv"
+    avazu_path = f"{test_datasets_path}/data_avazu.csv"
     threshold = 10
     testRatio = 0.1
     valRatio = 0.1
@@ -181,9 +181,9 @@ def process_data():
 
     avazu_parsing.fit(raw_train)
 
-    avazu_parsing.transform(raw_train, f"{test_datasets_path_avazu}/train.csv")
-    avazu_parsing.transform(raw_test, f"{test_datasets_path_avazu}/test.csv")
-    avazu_parsing.transform(raw_val, f"{test_datasets_path_avazu}/validation.csv")
+    avazu_parsing.transform(raw_train, f"{test_datasets_path}/train.csv")
+    avazu_parsing.transform(raw_test, f"{test_datasets_path}/test.csv")
+    avazu_parsing.transform(raw_val, f"{test_datasets_path}/validation.csv")
 
 
 # process_data()

@@ -8,7 +8,8 @@ import torch
 from math import floor, log
 
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
-from src.torchfm.torch_utils.constants import test_datasets_path, original_input_file_path, frequent_values_pkl, label
+from src.torchfm.torch_utils.constants import test_datasets_path, frequent_values_pkl, label, \
+    index2value_json, value2index_json, missing
 from src.torchfm.torch_utils.io_utils import get_train_validation_test_paths, get_train_validation_test_preprocessed_paths
 from src.torchfm.torch_utils.utils import get_absolute_sizes
 
@@ -21,6 +22,7 @@ else:
 
 
 class CriteoParsing:
+    criteo_path = f"{test_datasets_path}/data_criteo.csv"
     # Set the threshold (minimum frequency) for the default value
     threshold = 10
 
@@ -153,7 +155,7 @@ class CriteoParsing:
             else:
                 return value_index_mapping[self.default_value]
 
-        new_column = column.map(map_val_to_ind)   # new_column = column.map(value_index_mapping)
+        new_column = column.map(map_val_to_ind)
         return new_column
 
     def calc_save_global_index_value_mapping(self, dataframe):
@@ -175,7 +177,7 @@ class CriteoParsing:
 
     def index_df(self, dataframe):
         new_dataframe = pd.DataFrame()
-        # global_index_value_mapping, global_value_index_mapping = calc_global_index_value_mapping(dataframe)
+
         global_value_index_mapping = self.load_value_index_mapping()
         for column_name in dataframe.columns:
             if column_name != label:
@@ -202,11 +204,11 @@ class CriteoParsing:
     def split(self):
         split_to_paths = get_train_validation_test_paths(test_datasets_path)
         train_validation_test_rel_sizes = [0.8, 0.1, 0.1]
-        self.split_to_datasets_save(original_input_file_path, train_validation_test_rel_sizes, split_to_paths)
+        self.split_to_datasets_save(CriteoParsing.criteo_path, train_validation_test_rel_sizes, split_to_paths)
 
     def fit(self):
         paths = get_train_validation_test_paths(test_datasets_path)
-        train_dataset_path = paths[0]   # 0 index file to train  '../torchfm/test-datasets/train100K_train.txt'
+        train_dataset_path = paths[0]
 
         df = self.read_dataset(train_dataset_path)
         self.calc_save_frequent_values(df)
