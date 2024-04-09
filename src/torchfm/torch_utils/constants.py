@@ -46,9 +46,7 @@ metrics_to_optimize = [logloss, auc]
 ranks_to_check = [1, 2, 3, 4, 5]
 device_inds = list(range(4))
 
-base_path_project="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/data"
-#path_torchfm="/Users/viderman/Documents/workspace/factorization_machine_git/pytorch-fm/src/torchfm"
-#base_path_project = "hdfs://jetblue-nn1.blue.ygrid.yahoo.com:8020/projects/moneyball/viderman/low_rank_experiments/data"
+base_path_project="/Users/<user_name>/Documents/workspace/factorization_machine_git/pytorch-fm/data"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
 dataset_name = movielens
