@@ -19,8 +19,8 @@ The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
 Example of preprocessed dataset that will be obtained after running the preprocessing scripts on the initial datasets:
 
-`label, user_id, item_id, C1, C2, …
-<label>,10,2,3,17,11,15
+`label, user_id, item_id, C1, C2, …  
+<label>,10,2,3,17,11,15  
 <label>,11,2,4,16,12,14`
 
 
