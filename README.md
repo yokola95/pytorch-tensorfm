@@ -4,10 +4,14 @@
 This package provides a PyTorch implementation of low rank factorization machine models, the factorization model baselines and the common datasets in CTR prediction.
 The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
-## The instructions contain two main steps: 
+## The instructions contain three main steps: 
    - Step 1: Data Preprocessing and 
    - Step 2: Running the models on the preprocessed data.
+   - Step 3: Analyzing the results
 
+Moreover, this repository also contains a notebook `notebooks/inference_timing.ipynb` that demonstrates inference speedups
+attained by low-rank models over pruned models, for different ad auction sizes and 
+amounts of context fields.
 
 ## Available Datasets
 
@@ -107,3 +111,11 @@ python ./pytorch-fm/src/main_functions/run_processes.py
 /pytorch-fm/data/tmp_save_dir/optuna_results.txt. 
 Also, debug info is saved in /pytorch-fm/data/tmp_save_dir/debug_info.txt
 
+# Instructions: How to analyze the results
+Open the notebook in `notebooks/analysis.ipynb`, modify the line
+```python
+files = glob.glob('../data/optuna_results*.txt')
+```
+to point to the appropriate paths with the result files saved in the previous stage, and run the notebook. It produces 
+a Pandas table with the metrics and corresponding lifts of each dataset, and a
+LaTeX code snippet you can put in a paper to share the results.
