@@ -5,7 +5,7 @@ This package provides a PyTorch implementation of low rank factorization machine
 The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
 ## The instructions contain two main steps: 
-   - Step1: Data Preprocessing and 
+   - Step 1: Data Preprocessing and 
    - Step 2: Running the models on the preprocessed data.
 
 
@@ -19,9 +19,9 @@ The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
 Example of preprocessed dataset that will be obtained after running the preprocessing scripts on the initial datasets:
 
-label, user_id, item_id, C1, C2, …
+`label, user_id, item_id, C1, C2, …
 <label>,10,2,3,17,11,15
-<label>,11,2,4,16,12,14
+<label>,11,2,4,16,12,14`
 
 
 ## How to preprocess Avazu dataset
@@ -104,6 +104,6 @@ rm pytorch-fm/data/tmp_save_dir/*
 python ./pytorch-fm/src/main_functions/run_processes.py
 
 9. After the run is done, the results are saved in 
-/pytorch-fm/data/tmp_save_dir/optuna_results.txt 
+/pytorch-fm/data/tmp_save_dir/optuna_results.txt. 
 Also, debug info is saved in /pytorch-fm/data/tmp_save_dir/debug_info.txt
 
