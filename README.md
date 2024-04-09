@@ -1,11 +1,11 @@
 # Factorization Machine models in PyTorch
-## The code was forked and modified from https://github.com/rixwew/pytorch-fm, written by rixwew. 
-## The API Documentation of the original code is: https://rixwew.github.io/pytorch-fm
+### The code was forked and modified from https://github.com/rixwew/pytorch-fm, written by rixwew. 
+The API Documentation of the original code is: https://rixwew.github.io/pytorch-fm
 
 This package provides a PyTorch implementation of low rank factorization machine models, the factorization model baselines and the common datasets in CTR prediction.
+The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
 ## The instructions contain two main steps: Step1: Data Preprocessing and Step 2: Running the models on the preprocessed data.
-    The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
 
 ## Available Datasets
