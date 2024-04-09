@@ -1,11 +1,12 @@
 # Factorization Machine models in PyTorch
-### The code was forked and modified from https://github.com/rixwew/pytorch-fm, written by rixwew. 
-The API Documentation of the original code is: https://rixwew.github.io/pytorch-fm
+### The code was forked and modified from https://github.com/rixwew/pytorch-fm, written by rixwew. The API Documentation of the original code is: https://rixwew.github.io/pytorch-fm
 
 This package provides a PyTorch implementation of low rank factorization machine models, the factorization model baselines and the common datasets in CTR prediction.
 The code is running on the following datasets: Avazu, Criteo, and Movielens.
 
-## The instructions contain two main steps: Step1: Data Preprocessing and Step 2: Running the models on the preprocessed data.
+## The instructions contain two main steps: 
+   - Step1: Data Preprocessing and 
+   - Step 2: Running the models on the preprocessed data.
 
 
 ## Available Datasets
@@ -69,7 +70,7 @@ label, user_id, item_id, C1, C2, …
    proceed to run the ML models on the train-validation-test datasets.
 
 
-# Instructions: How to run a dataset on ephemeral instance
+# Instructions: How to run a dataset on a local environment
 
 1. Copy the code to the dedicated folder. Install all requirements. 
 
@@ -88,7 +89,7 @@ to have
  
 4. Copy train.csv/validation.csv/test.csv splitted datasets to be under pytorch-fm/data/test-datasets/<dataset>/
 (dataset is either criteo or avazu or movielens)
-Then, open a python shell by running just: python command from the ephemeral shell.
+Then, open a python shell by running just: "python" command from the shell.
 
 5. Check that you have enough space (at least 5G available) after all these steps in your local environment, e.g., by:
 df -h /home/default/your_location
