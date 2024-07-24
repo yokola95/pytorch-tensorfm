@@ -1,4 +1,4 @@
-# Factorization Machine models in PyTorch
+# Factorization Machine models in PyTorch ([paper](https://github.com/michaelviderman/pytorch-fm/blob/dev/low_rank_fwfm___RecSys_2024__Camera_Ready_%20(1).pdf))
 ### The code was forked and modified from https://github.com/rixwew/pytorch-fm, written by rixwew. The API Documentation of the original code is: https://rixwew.github.io/pytorch-fm
 
 This package provides a PyTorch implementation of low rank factorization machine models, the factorization model baselines and the common datasets in CTR prediction.
