@@ -3,6 +3,8 @@ import torch.nn as nn
 from src.torchfm.layer import FeaturesEmbedding, FeaturesLinear
 
 class TensorFactorizationMachineModel(torch.nn.Module):
+    # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
+    # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
     def __init__(self, field_dims, embed_dim, dim_int, rank_tensors, is_multivalued=False):
         super().__init__()
         self.embedding = FeaturesEmbedding(field_dims, embed_dim, is_multival=is_multivalued)
