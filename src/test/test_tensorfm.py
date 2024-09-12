@@ -17,8 +17,9 @@ class TestTensorFactorizationMachineModel(unittest.TestCase):
         model = TensorFactorizationMachineModel([5,5,5,5], embed_dim, [2,3], [2,2])
         with torch.no_grad():
             x = torch.tensor([[[3,7,11,16], [3, 8, 12, 17]]])
-            res = model(x)
+            res,reg = model(x)
             print(res)
+            print(reg)
 
             # diffTensor = torch.flatten(res1) - torch.flatten(res2)
             # diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)

@@ -24,13 +24,16 @@ class TensorFactorizationMachineModel(torch.nn.Module):
             for i in range(self.l):
                 nn.init.trunc_normal_(self.W[i], std=0.01)
 
-    def forward(self, x): # A = (batch_size, num_fields, embedding_dim)
-        emb,_ = self.embedding(x)
-        ret,_ = self.linear(x)
-
+    def forward(self, x, return_l2=True): # A = (batch_size, num_fields, embedding_dim)
+        emb,reg_emb = self.embedding(x,return_l2)
+        ret,reg_linear = self.linear(x,return_l2)
         for i in range(self.l):
             ret = torch.add(ret, self.calc_cross(emb,i))
-        return ret,0
+
+        if return_l2:
+            return ret,[reg_emb + self.get_l2_reg(),reg_linear]
+        else:
+            return ret,[0,0]
 
     def calc_cross(self,A,idx):  # efficiently
             W_i = self.W[idx]  # W_i has shape (d, r, n)
@@ -44,7 +47,8 @@ class TensorFactorizationMachineModel(torch.nn.Module):
             return sum_all.unsqueeze(1)
 
 
-    def get_l2_reg(self, emb):
-        base_reg = self.embedding.get_l2_reg(emb) + self.linear.get_l2_reg(emb),
-        tensor_reg = nn.sum(self.W.square().mean())
-        return base_reg + tensor_reg
+    def get_l2_reg(self):
+        tensor_reg = 0
+        for i in range(self.l):     
+            tensor_reg = tensor_reg + torch.sum(self.W[i].square().mean())
+        return tensor_reg
