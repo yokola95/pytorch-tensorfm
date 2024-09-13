@@ -18,6 +18,7 @@ from src.torchfm.model.fm import FactorizationMachineModel
 from src.torchfm.model.fnfm import FieldAwareNeuralFactorizationMachineModel
 from src.torchfm.model.fnn import FactorizationSupportedNeuralNetworkModel
 from src.torchfm.model.hofm import HighOrderFactorizationMachineModel
+from src.torchfm.model.tensorfm import TensorFactorizationMachineModel
 from src.torchfm.model.lr import LogisticRegressionModel
 from src.torchfm.model.ncf import NeuralCollaborativeFiltering
 from src.torchfm.model.nfm import NeuralFactorizationMachineModel
@@ -113,7 +114,7 @@ def get_iterators(train_dataset, valid_dataset, test_dataset, batch_size, num_wo
     return train_data_loader, valid_data_loader, test_data_loader
 
 
-def get_model(name, dataset, rank_param, emb_size):
+def get_model(name, dataset, rank_param, emb_size, dim_int = [2,3], ranks = [2,2]):
     """
     Hyperparameters are empirically determined, not opitmized.
     """
@@ -136,6 +137,10 @@ def get_model(name, dataset, rank_param, emb_size):
         return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk, is_multivalued=is_multival)
     elif name == 'lowrank_fwfm':
         return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param, is_multivalued=is_multival)
+    # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
+    # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
+    elif name == 'tensorfm':
+        return TensorFactorizationMachineModel(num_features, num_columns, emb_size, dim_int = dim_int, rank_tensors=ranks )
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':

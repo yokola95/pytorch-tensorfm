@@ -5,12 +5,12 @@ from src.torchfm.layer import FeaturesEmbedding, FeaturesLinear
 class TensorFactorizationMachineModel(torch.nn.Module):
     # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
     # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
-    def __init__(self, field_dims, embed_dim, dim_int, rank_tensors, is_multivalued=False):
+    def __init__(self, features_dim, num_fields, embed_dim, dim_int, rank_tensors, is_multivalued=False):
         super().__init__()
-        self.embedding = FeaturesEmbedding(field_dims, embed_dim, is_multival=is_multivalued)
-        self.linear = FeaturesLinear(field_dims, is_multival=is_multivalued)
+        self.embedding = FeaturesEmbedding(features_dim, embed_dim, is_multival=is_multivalued)
+        self.linear = FeaturesLinear(features_dim, is_multival=is_multivalued)
         self.embed_dim = embed_dim
-        self.num_fields = len(field_dims)
+        self.num_fields = num_fields
         self.dim_int = dim_int
         self.l = len(dim_int)
         self.rank_tensors = rank_tensors
@@ -33,7 +33,7 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         if return_l2:
             return ret,[reg_emb + self.get_l2_reg(),reg_linear]
         else:
-            return ret,[0,0]
+            return ret,[0.0,0.0]
 
     def calc_cross(self,A,idx):  # efficiently
             W_i = self.W[idx]  # W_i has shape (d, r, n)

@@ -10,11 +10,11 @@ class TestTensorFactorizationMachineModel(unittest.TestCase):
         # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
         # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
         embed_dim = 4
-        dim_fields = [5,5,5,5] # as in the fm implemented in this repo
+        num_features = 20 # as in the fm implemented in this repo
+        num_fields = 4
         dim_int = [2,3]
         rank_tensors = [2,2]
-        model = TensorFactorizationMachineModel(dim_fields, embed_dim, dim_int, rank_tensors)
-        model = TensorFactorizationMachineModel([5,5,5,5], embed_dim, [2,3], [2,2])
+        model = TensorFactorizationMachineModel(num_features, num_fields, embed_dim, dim_int, rank_tensors)
         with torch.no_grad():
             x = torch.tensor([[[3,7,11,16], [3, 8, 12, 17]]])
             res,reg = model(x)
