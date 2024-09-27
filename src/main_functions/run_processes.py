@@ -27,8 +27,10 @@ def generate_movielens_options():
 movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'mse', 1, 16), ('lowrank_fwfm', 'mse', 2, 8), ('lowrank_fwfm', 'mse', 2, 16), ('lowrank_fwfm', 'mse', 3, 8), ('lowrank_fwfm', 'mse', 3, 16), ('lowrank_fwfm', 'mse', 4, 8), ('lowrank_fwfm', 'mse', 4, 16), ('lowrank_fwfm', 'mse', 5, 8), ('lowrank_fwfm', 'mse', 5, 16), ('pruned_fwfm', 'mse', 1, 8), ('pruned_fwfm', 'mse', 1, 16), ('pruned_fwfm', 'mse', 2, 8), ('pruned_fwfm', 'mse', 2, 16), ('pruned_fwfm', 'mse', 3, 8), ('pruned_fwfm', 'mse', 3, 16), ('pruned_fwfm', 'mse', 4, 8), ('pruned_fwfm', 'mse', 4, 16), ('pruned_fwfm', 'mse', 5, 8), ('pruned_fwfm', 'mse', 5, 16), ('fwfm', 'mse', 0, 8), ('fwfm', 'mse', 0, 16), ('fm', 'mse', 0, 8), ('fm', 'mse', 0, 16)]
 
 
-lst_tmp = all_options_for_studies[0:10]
+# lst_tmp = all_options_for_studies[0:10]
 
+# Tmp list for Avazu dataset
+lst_tmp = [('tensorfm', 'logloss', 0, 8, [2,3], [2,2])]
 
 # 8 processes
 # Use: 'tmux attach'   to run session to run the python from

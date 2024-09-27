@@ -29,6 +29,7 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         ret,reg_linear = self.linear(x,return_l2)
         for i in range(self.l):
             ret = torch.add(ret, self.calc_cross(emb,i))
+        ret = ret.squeeze(-1)
 
         if return_l2:
             return ret,[reg_emb + self.get_l2_reg(),reg_linear]

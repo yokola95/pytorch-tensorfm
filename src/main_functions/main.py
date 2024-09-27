@@ -72,7 +72,7 @@ def main(dataset_nm, dataset_paths, option_to_run, epoch, criterion_name, weight
     train_dataset, valid_dataset, test_dataset = get_datasets(dataset_nm, dataset_paths)
     train_iterator, valid_iterator, test_iterator = get_iterators(train_dataset, valid_dataset, test_dataset, option_to_run.batch_size, num_workers, device)
 
-    model = get_model(option_to_run.m_to_check, train_dataset, option_to_run.rank, option_to_run.emb_size).to(device)
+    model = get_model(option_to_run.m_to_check, train_dataset, option_to_run.rank, option_to_run.emb_size, option_to_run.dim_int, option_to_run.ten_ranks).to(device)
     criterion = get_criterion(criterion_name)
     optimizer = get_optimizer(option_to_run.opt_name, model.parameters(), option_to_run.lr, weight_decay)
     early_stopper = EarlyStopper()
