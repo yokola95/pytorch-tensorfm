@@ -2,7 +2,7 @@ import traceback
 import optuna
 from optuna.storages import JournalStorage, JournalFileStorage
 from main import top_main_for_option_run
-from src.torchfm.torch_utils.options_to_run import Option2Run
+from src.torchfm.torch_utils.options_to_run import Option2Run, TensorFMParams
 from src.torchfm.torch_utils.constants import optuna_num_trials, logloss, mse, minimize, maximize, batch_sizes_to_check, \
     coef_vectors_max, coef_biases_max, coef_vectors_min, coef_biases_min, optuna_seed
 from src.torchfm.torch_utils.optuna_utils import get_journal_name, erase_content_journal
@@ -17,13 +17,13 @@ def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_par
     coef_vectors = trial.suggest_float("coef_vectors", coef_vectors_min, coef_vectors_max)  # reg coef vectors
     coef_biases = trial.suggest_float("coef_biases", coef_biases_min, coef_biases_max)  # reg coef biases
 
-    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, lr, opt_name, batch_size, dim_int, ten_ranks, coef_vectors, coef_biases, 0.0)
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, lr, opt_name, batch_size, TensorFMParams(dim_int, ten_ranks), coef_vectors, coef_biases, 0.0)
     return top_main_for_option_run(study, trial, device_ind, option_to_run)
 
 
 def run_optuna_study(model_name, metric_to_optimize, rank_param, emb_size, device_ind, dim_int, ten_ranks):
 
-    journal_name = get_journal_name(model_name, metric_to_optimize, rank_param, emb_size)
+    journal_name = get_journal_name(model_name, metric_to_optimize, rank_param, emb_size, dim_int, ten_ranks)
     erase_content_journal(journal_name)
     storage = JournalStorage(JournalFileStorage(journal_name))
     study = optuna.create_study(study_name=f"Study {model_name} {metric_to_optimize} {rank_param} {emb_size}",
