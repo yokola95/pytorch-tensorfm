@@ -39,6 +39,9 @@ class TensorFMParams:
     def to_csv(self):
         return str(self.length) + "," + ",".join([str(i) for i in self.dim_int]) + "," + ",".join([str(i) for i in self.ten_ranks])
 
+    def to_csv_res(self):
+        return "_".join([str(i) for i in self.dim_int]) + "_" + "_".join([str(i) for i in self.ten_ranks])
+
     @staticmethod
     def from_csv(str_arr, from_ind):
         tensor_fm = TensorFMParams()
@@ -76,10 +79,20 @@ class Option2Run:
         self.return_l2 = float(self.reg_coef_vectors) != 0.0 or float(self.reg_coef_biases) != 0.0
         self.tensor_fm_params = tensor_fm_params
 
+    def params_to_csv(self, tensor_fm_csv):
+        res = ",".join([str(i) for i in
+                        [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name,
+                         self.batch_size, tensor_fm_csv, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases,
+                         self.part_id]])
+        return res
+
     def to_csv(self):
         tensor_fm_csv = self.tensor_fm_params.to_csv()
-        res = ",".join([str(i) for i in [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name, self.batch_size, tensor_fm_csv, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases, self.part_id]])
-        return res
+        return self.params_to_csv(tensor_fm_csv)
+
+    def to_csv_res(self):
+        tensor_fm_csv = self.tensor_fm_params.to_csv_res()
+        return self.params_to_csv(tensor_fm_csv)
 
 
 def tuple_to_option2run(tpl):

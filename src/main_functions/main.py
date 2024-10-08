@@ -82,7 +82,7 @@ def main(dataset_nm, dataset_paths, option_to_run, epoch, criterion_name, weight
         train_time = train_wrapper(model, optimizer, train_iterator, criterion, device, option_to_run)
 
         valid_err, valid_auc, test_err, test_auc, valid_time = valid_test(model, valid_iterator, test_iterator, criterion, device)
-        save_all_args_to_file(option_to_run, study_name, option_to_run.to_csv(), trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, criterion_name, dataset_nm)
+        save_all_args_to_file(option_to_run, study_name, option_to_run.to_csv_res(), trial_number, epoch_i, valid_err, valid_auc, test_err, test_auc, train_time, valid_time, criterion_name, dataset_nm)
         best_error.update(valid_err, valid_auc)
 
         prune_running_if_needed(trial, valid_err, epoch_i)
