@@ -17,6 +17,7 @@ fwfm = "fwfm"
 fm = 'fm'
 lowrank_fwfm = "lowrank_fwfm"
 pruned_fwfm = "pruned_fwfm"
+tensorfm = "tensorfm"
 logloss = "logloss"
 auc = "auc"
 mse = "mse"
@@ -46,10 +47,14 @@ metrics_to_optimize = [logloss, auc]
 ranks_to_check = [1, 2, 3, 4, 5]
 device_inds = list(range(4))
 
-base_path_project="/Users/<user_name>/Documents/workspace/factorization_machine_git/pytorch-fm/data"
+# Default TensorfM parameters
+dim_int = [0]
+ten_ranks = [0]
+
+base_path_project="/Users/viderman/Documents/workspace/pytorch-tensorfm/src/torchfm"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
-dataset_name = movielens
+dataset_name = avazu
 test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
 optuna_num_trials = 50

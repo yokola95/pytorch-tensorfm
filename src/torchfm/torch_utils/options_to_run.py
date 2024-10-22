@@ -20,6 +20,37 @@ options_for_studies_not_ranked = list(itertools.product(models_to_check_w_no_ran
 all_options_for_studies = options_for_studies_ranked + options_for_studies_not_ranked
 
 
+class TensorFMParams:
+    length = 0
+    dim_int = None
+    ten_ranks = None
+
+    def __init__(self):
+        self.length = 0
+        self.dim_int = None
+        self.ten_ranks = None
+
+    def __init__(self, dim_int, ten_ranks):
+        assert (dim_int is not None and ten_ranks is not None and (len(dim_int) == len(ten_ranks)))
+        self.dim_int = dim_int
+        self.ten_ranks = ten_ranks
+        self.length = len(dim_int)
+
+    def to_csv(self):
+        return str(self.length) + "," + ",".join([str(i) for i in self.dim_int]) + "," + ",".join([str(i) for i in self.ten_ranks])
+
+    def to_csv_res(self):
+        return "_".join([str(i) for i in self.dim_int]) + "_" + "_".join([str(i) for i in self.ten_ranks])
+
+    @staticmethod
+    def from_csv(str_arr, from_ind):
+        tensor_fm = TensorFMParams()
+        tensor_fm.length = int(str_arr[from_ind])
+        tensor_fm.dim_int = [int(i) for i in str_arr[from_ind + 1: from_ind + 1 + tensor_fm.length]]
+        tensor_fm.ten_ranks = [int(i) for i in str_arr[from_ind + 1 + tensor_fm.length: from_ind + 1 + 2 * tensor_fm.length]]
+        return tensor_fm
+
+
 class Option2Run:
     m_to_check = None
     met_to_opt = None
@@ -32,8 +63,9 @@ class Option2Run:
     reg_coef_vectors = None
     reg_coef_biases = None
     part_id = None
+    tensor_fm_params = None
 
-    def __init__(self, m_to_check, met_to_opt, rank, emb_size, lr, opt_name, batch_size, reg_coef_vectors, reg_coef_biases, part_id):
+    def __init__(self, m_to_check, met_to_opt, rank, emb_size, lr, opt_name, batch_size, tensor_fm_params, reg_coef_vectors, reg_coef_biases, part_id):
         self.m_to_check = m_to_check
         self.met_to_opt = met_to_opt
         self.rank = rank
@@ -45,12 +77,26 @@ class Option2Run:
         self.reg_coef_biases = reg_coef_biases
         self.part_id = part_id
         self.return_l2 = float(self.reg_coef_vectors) != 0.0 or float(self.reg_coef_biases) != 0.0
+        self.tensor_fm_params = tensor_fm_params
+
+    def params_to_csv(self, tensor_fm_csv):
+        res = ",".join([str(i) for i in
+                        [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name,
+                         self.batch_size, tensor_fm_csv, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases,
+                         self.part_id]])
+        return res
 
     def to_csv(self):
-        res = ",".join([str(i) for i in [self.m_to_check, self.met_to_opt, self.rank, self.emb_size, self.lr, self.opt_name, self.batch_size, self.return_l2, self.reg_coef_vectors, self.reg_coef_biases, self.part_id]])
-        return res
+        tensor_fm_csv = self.tensor_fm_params.to_csv()
+        return self.params_to_csv(tensor_fm_csv)
+
+    def to_csv_res(self):
+        tensor_fm_csv = self.tensor_fm_params.to_csv_res()
+        return self.params_to_csv(tensor_fm_csv)
 
 
 def tuple_to_option2run(tpl):
+    tensor_fm_params = TensorFMParams.from_csv(tpl, 7)
+    length = tensor_fm_params.length
     return Option2Run(m_to_check=tpl[0], met_to_opt=tpl[1], rank=tpl[2], emb_size=tpl[3], lr=tpl[4], opt_name=tpl[5],
-                      batch_size=tpl[6], return_l2=(float(tpl[8]) == 0.0 and float(tpl[9]) == 0.0), reg_coef_vectors=tpl[8], reg_coef_biases=tpl[9])
+                      batch_size=tpl[6], tensor_fm_params=tensor_fm_params, reg_coef_vectors=tpl[7+2*length], reg_coef_biases=tpl[7+2*length+1], part_id=tpl[7+2*length+2])

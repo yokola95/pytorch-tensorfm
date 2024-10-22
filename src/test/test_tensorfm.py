@@ -3,27 +3,28 @@ import torch
 
 from src.torchfm.model.tensorfm import TensorFactorizationMachineModel
 
-class TestTensorFactorizationMachineModel(unittest.TestCase):
 
+class TestTensorFactorizationMachineModel(unittest.TestCase):
 
     def test_interaction_matrix_calc(self):
         # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
         # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
         embed_dim = 4
-        num_features = 20 # as in the fm implemented in this repo
+        num_features = 20  # as in the fm implemented in this repo
         num_fields = 4
-        dim_int = [2,3]
-        rank_tensors = [2,2]
+        dim_int = [2, 3]
+        rank_tensors = [2, 2]
         model = TensorFactorizationMachineModel(num_features, num_fields, embed_dim, dim_int, rank_tensors)
         with torch.no_grad():
-            x = torch.tensor([[[3,7,11,16], [3, 8, 12, 17]]])
-            res,reg = model(x)
+            x = torch.tensor([[[3, 7, 11, 16], [3, 8, 12, 17]]])
+            res, reg = model(x)
             print(res)
             print(reg)
 
             # diffTensor = torch.flatten(res1) - torch.flatten(res2)
             # diffTensorNorm = torch.linalg.vector_norm(diffTensor, ord=2)
             # assert diffTensorNorm < 1e-9
+
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
