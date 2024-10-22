@@ -28,8 +28,9 @@ class TensorFactorizationMachineModel(torch.nn.Module):
     def forward(self, x, return_l2=True):  # A = (batch_size, num_fields, embedding_dim)
         emb, reg_emb = self.embedding(x, return_l2)
         ret, reg_linear = self.linear(x, return_l2)
-        for i in range(self.l):
-            ret = torch.add(ret, self.calc_cross(emb, i))
+
+        results = [self.calc_cross(emb, i) for i in range(self.l)]
+        ret = ret + torch.stack(results).sum(dim=0)
 
         # CHECK IF THIS IS MORE EFFICIENT:
         # from functools import reduce
@@ -43,7 +44,16 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         else:
             return ret, [0.0, 0.0]
 
-    def calc_cross(self, A, idx):  # efficiently
+
+    def calc_cross(self, A, idx):
+        W_i = self.W[idx]
+        S = (W_i.unsqueeze(0) @ A.unsqueeze(1))
+        S_final = S.prod(dim=1)  
+        return S_final.sum()
+
+
+
+    def calc_cross_old(self, A, idx):  # efficiently
         W_i = self.W[idx]  # W_i has shape (d, r, n)
         W_i = W_i.unsqueeze(0)  # Now W_i has shape (1, d, r, n)
         # print("W_i,size", W_i.size())
