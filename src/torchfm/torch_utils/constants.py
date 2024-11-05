@@ -34,6 +34,8 @@ debug_print = False
 sparseGrads = True
 epochs_num = 20
 batch_sizes_to_check = [1024]
+num_batches_in_epoch = 100
+do_partial_epochs = True
 emb_sizes = [8, 16]
 # top_k_percent = 0.05
 weight_decay = 0
@@ -41,6 +43,8 @@ coef_vectors_max = 1e-4
 coef_vectors_min = 0.0
 coef_biases_max = 1e-4
 coef_biases_min = 0.0
+lr_min = 1e-5
+lr_max = 0.1
 
 models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
 metrics_to_optimize = [logloss, auc]
