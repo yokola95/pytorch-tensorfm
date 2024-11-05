@@ -108,10 +108,12 @@ def get_iterator(dataset, batch_size, num_workers, device, shuffle):
 
 
 def get_iterators(train_dataset, valid_dataset, test_dataset, batch_size, num_workers, device):
-    train_data_loader = get_iterator(train_dataset, batch_size, num_workers, device, shuffle=True)   #DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
-    valid_data_loader = get_iterator(valid_dataset, batch_size, num_workers, device, shuffle=False)  #DataLoader(valid_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
-    test_data_loader = get_iterator(test_dataset, batch_size, num_workers, device, shuffle=False)   #DataLoader(test_dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, generator=get_seeded_generator())
-    return train_data_loader, valid_data_loader, test_data_loader
+    train_data_loader = get_iterator(train_dataset, batch_size, num_workers, device, shuffle=True)
+    valid_data_loader = get_iterator(valid_dataset, batch_size, num_workers, device, shuffle=False)
+    test_data_loader = get_iterator(test_dataset, batch_size, num_workers, device, shuffle=False)
+
+    train_data_loader_loss = get_iterator(train_dataset, batch_size, num_workers, device, shuffle=False)
+    return train_data_loader, valid_data_loader, test_data_loader, train_data_loader_loss
 
 
 def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
