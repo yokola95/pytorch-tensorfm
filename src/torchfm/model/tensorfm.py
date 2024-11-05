@@ -49,7 +49,7 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         W_i = self.W[idx]
         S = (W_i.unsqueeze(0) @ A.unsqueeze(1))
         S_final = S.prod(dim=1)  
-        return S_final.sum()
+        return torch.sum(S_final, axis=[1,2] ).unsqueeze(1)
 
 
 
@@ -61,7 +61,6 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         dot_products = torch.einsum('bljk,bki->bijl', W_i, A)  # (b, emb_dim, r, d)
         prod_over_d = torch.prod(dot_products, axis=3)
         sum_all = torch.sum(prod_over_d, axis=[1, 2])
-        # print("SUM ALL", sum_all)
         return sum_all.unsqueeze(1)
 
     def get_l2_reg(self):
