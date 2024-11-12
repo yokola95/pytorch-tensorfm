@@ -34,7 +34,6 @@ class TensorFactorizationMachineModel(torch.nn.Module):
 
         # CHECK IF THIS IS MORE EFFICIENT:
         # from functools import reduce
-        # tmp_tensors_lst = [self.calc_cross(emb, i) for i in range(self.l)]
         # ret = reduce(lambda t1, t2: torch.add(t1, t2), tmp_tensors_lst)
 
         ret = ret.squeeze(-1)

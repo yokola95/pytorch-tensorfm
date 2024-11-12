@@ -257,6 +257,19 @@ def get_from_queue(q):
         return
 
 
+class EpochStopper(object):
+    def __init__(self, num_batches_in_epoch, do_partial_epochs):
+        self.num_batches_in_epoch = num_batches_in_epoch
+        self.do_partial_epochs = do_partial_epochs
+        self.epoch_stop = False
+        self.counter = 0
+
+    def __call__(self):
+        self.counter += 1
+        if self.do_partial_epochs:
+            self.epoch_stop = self.counter >= self.num_batches_in_epoch
+
+
 def set_torch_seed():
     torch.manual_seed(torch_global_seed)
     # torch.cuda.manual_seed(torch_global_seed)

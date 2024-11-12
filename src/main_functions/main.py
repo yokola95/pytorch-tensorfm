@@ -1,17 +1,18 @@
 from torchmetrics.classification import auroc
 
-from src.torchfm.torch_utils.constants import epochs_num, test_datasets_path, wrapper, auc, movielens, mse, dataset_name
+from src.torchfm.torch_utils.constants import epochs_num, test_datasets_path, num_batches_in_epoch, auc, movielens, mse, dataset_name, do_partial_epochs
 from src.torchfm.torch_utils.io_utils import get_train_validation_test_preprocessed_paths, save_all_args_to_file
 from src.torchfm.torch_utils.optuna_utils import prune_running_if_needed
 import torch
 import time
 
 from src.torchfm.torch_utils.utils import set_torch_seed, get_device_str, get_iterators, get_datasets, BestError, \
-    get_criterion, get_optimizer, EarlyStopper, get_model, print_msg
+    get_criterion, get_optimizer, EarlyStopper, get_model, print_msg, EpochStopper
 
 
 def train(model, optimizer, batch_iterator, criterion, device, option_to_run):
     model.train()
+    epoch_stopper = EpochStopper(num_batches_in_epoch=num_batches_in_epoch, do_partial_epochs=do_partial_epochs)
 
     for fields, target in batch_iterator:
         y, reg = model(fields, option_to_run.return_l2)  # return y,regularization_term_arr
@@ -21,6 +22,10 @@ def train(model, optimizer, batch_iterator, criterion, device, option_to_run):
         model.zero_grad()  # optimizer.zero_grad()
         cost.backward()
         optimizer.step()
+
+        epoch_stopper()
+        if epoch_stopper.epoch_stop:
+            break
 
 
 def train_wrapper(model, optimizer, iterator, criterion, device, option_to_run):

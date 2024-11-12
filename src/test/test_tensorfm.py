@@ -36,7 +36,9 @@ class TestTensorFactorizationMachineModel(unittest.TestCase):
             emb, reg_emb = model.embedding(x, True)
             res1 = model.calc_cross(emb, 0)
             res2 = model.calc_cross_old(emb, 0)
-            print(res1,res2)
+            print("")
+            print(res1)
+            print(res2)
             assert torch.allclose(res1, res2)
 
 
