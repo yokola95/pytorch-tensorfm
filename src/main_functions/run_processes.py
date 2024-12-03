@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from multiprocessing import Process
 from main_optuna import run_all_for_device_ind
-from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, tensorfm, mse, logloss, emb_sizes, metrics_to_optimize, \
+from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, tensorfm, mse, emb_sizes, metrics_to_optimize, \
     ranks_to_check, device_inds
 
 
@@ -16,8 +16,8 @@ from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, f
 #     all_options_for_studies.extend(all_options_for_studies_fwfm)
 #     all_options_for_studies.extend(all_option_for_studies_fm)
 #     return all_options_for_studies
-#
-#
+
+
 # # for Criteo and Avazu
 # all_options_for_studies = [('lowrank_fwfm', 'logloss', 1, 8), ('lowrank_fwfm', 'logloss', 1, 16),
 #                            ('lowrank_fwfm', 'logloss', 2, 8), ('lowrank_fwfm', 'logloss', 2, 16),
@@ -40,8 +40,8 @@ from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, f
 #                            ('fwfm', 'logloss', 0, 8), ('fwfm', 'logloss', 0, 16), ('fwfm', 'auc', 0, 8),
 #                            ('fwfm', 'auc', 0, 16), ('fm', 'logloss', 0, 8), ('fm', 'logloss', 0, 16),
 #                            ('fm', 'auc', 0, 8), ('fm', 'auc', 0, 16)]
-#
-#
+
+
 # # movielens
 # def generate_movielens_options():
 #     movielens_options = [(m_to_check, mse, rank, emb_size) for m_to_check in [lowrank_fwfm, pruned_fwfm] for rank in
@@ -49,8 +49,8 @@ from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, f
 #     movielens_options_fwfm_fm = [(m_to_check, mse, 0, emb_size) for m_to_check in [fwfm, fm] for emb_size in emb_sizes]
 #     movielens_options.extend(movielens_options_fwfm_fm)
 #     return movielens_options
-#
-#
+
+
 # # for MovieLens
 # movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'mse', 1, 16),
 #                              ('lowrank_fwfm', 'mse', 2, 8), ('lowrank_fwfm', 'mse', 2, 16),
@@ -64,10 +64,24 @@ from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, f
 #                              ('fm', 'mse', 0, 8), ('fm', 'mse', 0, 16)]
 
 
-# Tmp list for Avazu dataset
-lst_tmp = [(tensorfm, logloss, 0, 8, [2, 3], [2, 2])]
 
-# device_inds: 1-8 processes
+# code/paper split to context and item fields like in low rank paper
+
+# tensorfm_options = [([2],[4]), ([2],[2]), ([2,3],[4,4]), ([2,3],[2,2])]
+# tensorfm for Avazu
+tensorfm_options = [([2,3],[8,8]), ([2,3],[16,16]), ([2],[22])] # new params to try ([2],[22])
+
+
+lst_tensorfm_options = [(tensorfm, met_to_opt, 0, emb_size, tensorfm_option[0], tensorfm_option[1]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes for tensorfm_option in tensorfm_options]
+
+
+fwfm_options = [(fwfm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
+fm_options = [(fm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
+
+
+# 8 processes
+# Use: 'tmux attach'   to run session to run the python from
+# ctrl B, D   --- to disconnect
 
 # sys.path.append('/home/viderman/persistent_drive/pytorch-fm/src')
 # export PYTHONPATH=$PYTHONPATH:/home/viderman/persistent_drive/pytorch-fm/src
@@ -75,7 +89,7 @@ lst_tmp = [(tensorfm, logloss, 0, 8, [2, 3], [2, 2])]
 if __name__ == '__main__':
 
     queue = mp.Queue()
-    for tpl in lst_tmp:
+    for tpl in (lst_tensorfm_options+fwfm_options):
         queue.put(tpl)
 
     processes = [Process(target=run_all_for_device_ind, args=(queue, dev_ind), daemon=True) for dev_ind in device_inds]
