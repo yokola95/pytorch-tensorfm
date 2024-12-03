@@ -49,9 +49,3 @@ def run_all_for_device_ind(queue, device_ind):
             run_optuna_study(model_name, metric_top_optimize, rank_param, emb_size, device_ind, dim_int, ten_ranks)
     except Exception as e:
         write_debug_info("Exception in run_all_for_device_ind: ", str(e), traceback.format_exc())
-
-
-
-#for m_name in ["pruned_fwfm"]:  # lowrank_fwfm, fwfm,
-#    run_optuna_study(m_name, logloss, 2, 4, 0)
-

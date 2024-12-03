@@ -6,7 +6,8 @@ import torch
 import sys
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
-from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, avazu
+from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, \
+    avazu
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
 from src.torchfm.model.afi import AutomaticFeatureInteractionModel
@@ -133,16 +134,22 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
     elif name == 'ffm':
         return FieldAwareFactorizationMachineModel(num_features, embed_dim=4)
     elif name == 'fwfm':
-        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, is_multivalued=is_multival)
+        return FieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size,
+                                                      num_fields=num_columns, is_multivalued=is_multival)
     elif name == 'pruned_fwfm':
         topk = rank_param * (num_columns + 1)
-        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, topk=topk, is_multivalued=is_multival)
+        return PrunedFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size,
+                                                            num_fields=num_columns, topk=topk,
+                                                            is_multivalued=is_multival)
     elif name == 'lowrank_fwfm':
-        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size, num_fields=num_columns, c=rank_param, is_multivalued=is_multival)
+        return LowRankFieldWeightedFactorizationMachineModel(num_features=num_features, embed_dim=emb_size,
+                                                             num_fields=num_columns, c=rank_param,
+                                                             is_multivalued=is_multival)
     # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
     # For an index 1 <= i <= l, we consider a d_i-order interaction of rank r_i
     elif name == 'tensorfm':
-        return TensorFactorizationMachineModel(num_features, num_columns, emb_size, dim_int=tensor_fm_params.dim_int, rank_tensors=tensor_fm_params.ten_ranks, is_multivalued=is_multival)
+        return TensorFactorizationMachineModel(num_features, num_columns, emb_size, dim_int=tensor_fm_params.dim_int,
+                                               rank_tensors=tensor_fm_params.ten_ranks, is_multivalued=is_multival)
     elif name == 'fnn':
         return FactorizationSupportedNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'wd':
@@ -172,7 +179,8 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
         return AttentionalFactorizationMachineModel(num_features, embed_dim=16, attn_size=16, dropouts=(0.2, 0.2))
     elif name == 'afi':
         return AutomaticFeatureInteractionModel(
-             num_features, embed_dim=16, atten_embed_dim=64, num_heads=2, num_layers=3, mlp_dims=(400, 400), dropouts=(0, 0, 0))
+            num_features, embed_dim=16, atten_embed_dim=64, num_heads=2, num_layers=3, mlp_dims=(400, 400),
+            dropouts=(0, 0, 0))
     elif name == 'afn':
         print("Model:AFN")
         return AdaptiveFactorizationNetwork(
@@ -184,7 +192,8 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
 def get_baselines_log_loss(targets):
     log_loss = torch.nn.BCELoss()
     targets_ctr = torch.sum(targets) / targets.size(dim=0)
-    ctr_loss = log_loss(torch.ones_like(targets) * targets_ctr.item(), targets).item()  # global train ctr 0.22711533894173677
+    ctr_loss = log_loss(torch.ones_like(targets) * targets_ctr.item(),
+                        targets).item()  # global train ctr 0.22711533894173677
     half_loss = log_loss((torch.ones_like(targets) * 0.5).float(), targets).item()
 
     return ctr_loss, half_loss
@@ -218,8 +227,8 @@ class EarlyStopper(object):
 
 class LossCalc:
     total_loss = 0
-    total_ctr_loss = 0     # loss w.r.t. ctr prediction on data
-    total_half_loss = 0    # loss w.r.t. constant 1/2 prediction
+    total_ctr_loss = 0  # loss w.r.t. ctr prediction on data
+    total_half_loss = 0  # loss w.r.t. constant 1/2 prediction
 
     def __init__(self, total_loss, total_ctr_loss, total_half_loss):
         self.total_loss = total_loss
@@ -267,7 +276,11 @@ class EpochStopper(object):
     def __call__(self):
         self.counter += 1
         if self.do_partial_epochs:
-            self.epoch_stop = self.counter >= self.num_batches_in_epoch
+            self.epoch_stop = (self.counter >= self.num_batches_in_epoch)
+
+    def restart(self):
+        self.epoch_stop = False
+        self.counter = 0
 
 
 def set_torch_seed():
