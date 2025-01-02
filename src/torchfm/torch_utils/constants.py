@@ -56,7 +56,7 @@ device_inds = list(range(4))
 dim_int = [0]
 ten_ranks = [0]
 
-base_path_project="/home/viderman/persistent_drive/pytorch-tensorfm/data"
+base_path_project = "/home/viderman/persistent_drive/pytorch-tensorfm/data"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
 dataset_name = avazu
