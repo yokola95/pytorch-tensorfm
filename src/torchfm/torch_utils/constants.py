@@ -29,6 +29,7 @@ reg_param = "reg_param"
 criteo = "criteo"
 avazu = "avazu"
 movielens = "movielens"
+triple_dataset = "triple-dataset"
 
 debug_print = False
 sparseGrads = True
