@@ -30,10 +30,11 @@ criteo = "criteo"
 avazu = "avazu"
 movielens = "movielens"
 triple_dataset = "triple-dataset"
+random_binary_function = "random_binary_function"
 
 debug_print = False
 sparseGrads = True
-epochs_num = 5  # 5 full epochs
+epochs_num = 2  # 5 full epochs
 batch_sizes_to_check = [1024]
 num_batches_in_epoch = 3000
 do_partial_epochs = True
@@ -62,7 +63,7 @@ tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 dataset_name = avazu
 test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
-optuna_num_trials = 50 # was 50 then 100
+optuna_num_trials = 50  # was 50 then 100
 debug_info_file = f"{tmp_save_dir}/debug_info.txt"
 save_optuna_results_file = f"{tmp_save_dir}/optuna_results.txt"
 save_run_results = f"{tmp_save_dir}/run_results/"
@@ -76,6 +77,8 @@ torch_global_seed = 42
 python_random_seed = 42
 optuna_seed = 42
 use_batch_iterator = True
+
+evals_on_same_parameters = 30
 
 hdfs_run = False
 

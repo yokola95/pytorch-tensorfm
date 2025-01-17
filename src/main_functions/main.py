@@ -1,7 +1,7 @@
 from torchmetrics.classification import auroc
 
 from src.torchfm.torch_utils.constants import epochs_num, test_datasets_path, num_batches_in_epoch, auc, movielens, mse, \
-    dataset_name, do_partial_epochs
+    dataset_name, do_partial_epochs, evals_on_same_parameters
 from src.torchfm.torch_utils.io_utils import get_train_validation_test_preprocessed_paths, save_all_args_to_file
 from src.torchfm.torch_utils.optuna_utils import prune_running_if_needed
 import torch
@@ -158,4 +158,12 @@ def top_main_for_option_run(study, trial, device_ind, option_to_run):
     criterion_name = mse if movielens in train_valid_test_paths[0] else 'bcelogitloss'
     valid_err, valid_auc = main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
                                 device_str, study, trial)
+
+    # to make stats (std, mean) of auc, logloss metrics more reliable we run same training several times
+    for tmp_ind in range(evals_on_same_parameters-1):
+        set_torch_seed(tmp_ind+1)
+        main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
+                                    device_str, study, trial)
+
     return valid_err if option_to_run.met_to_opt != auc else valid_auc
+
