@@ -7,7 +7,7 @@ import sys
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
 from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, \
-    avazu, triple_dataset
+    avazu, triple_dataset, random_binary_function
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
 from src.torchfm.model.afi import AutomaticFeatureInteractionModel
@@ -91,6 +91,8 @@ def get_dataset(name, path):
     elif name == avazu:
         return WrapperDataset(path, sep=',')
     elif name == triple_dataset:
+        return WrapperDataset(path, sep=',')
+    elif name == random_binary_function:
         return WrapperDataset(path, sep=',')
     elif name == 'wrapper':
         return WrapperDataset(path)
@@ -285,19 +287,22 @@ class EpochStopper(object):
         self.counter = 0
 
 
-def set_torch_seed():
-    torch.manual_seed(torch_global_seed)
-    # torch.cuda.manual_seed(torch_global_seed)
-    torch.cuda.manual_seed_all(torch_global_seed)
+def set_torch_seed(tmp_seed=0):
+    torch_seed = torch_global_seed + tmp_seed
+    python_seed = python_random_seed + tmp_seed
 
-    random.seed(python_random_seed)
-    np.random.seed(python_random_seed)
+    torch.manual_seed(torch_seed)
+    # torch.cuda.manual_seed(torch_seed)
+    torch.cuda.manual_seed_all(torch_seed)
+
+    random.seed(python_seed)
+    np.random.seed(python_seed)
 
     # When running on the CuDNN backend, two further options must be set
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     # Set a fixed value for the hash seed
-    os.environ["PYTHONHASHSEED"] = str(python_random_seed)
+    os.environ["PYTHONHASHSEED"] = str(python_seed)
 
 
 def get_seeded_generator():
