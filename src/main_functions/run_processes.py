@@ -1,7 +1,7 @@
 import multiprocessing as mp
 from multiprocessing import Process
 from main_optuna import run_all_for_device_ind
-from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, tensorfm, mse, emb_sizes, metrics_to_optimize, \
+from src.torchfm.torch_utils.constants import lowrank_fwfm, fwfm, pruned_fwfm, fm, lr, tensorfm, mse, emb_sizes, metrics_to_optimize, \
     ranks_to_check, device_inds
 
 
@@ -77,7 +77,7 @@ lst_tensorfm_options = [(tensorfm, met_to_opt, 0, emb_size, tensorfm_option[0], 
 
 fwfm_options = [(fwfm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 fm_options = [(fm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
-
+lr_options = [(lr, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 
 # 8 processes
 # Use: 'tmux attach'   to run session to run the python from

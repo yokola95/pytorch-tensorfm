@@ -130,7 +130,7 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
     is_multival = dataset.multivalued
 
     if name == 'lr':
-        return LogisticRegressionModel(num_features)
+        return LogisticRegressionModel(num_features=num_features, is_multivalued=is_multival)
     elif name == 'fm':
         return FactorizationMachineModel(num_features, embed_dim=emb_size, is_multivalued=is_multival)
     elif name == 'hofm':

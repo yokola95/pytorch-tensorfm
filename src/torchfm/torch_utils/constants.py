@@ -15,6 +15,7 @@ test = "test"
 val = "val"
 fwfm = "fwfm"
 fm = 'fm'
+lr = 'lr'
 lowrank_fwfm = "lowrank_fwfm"
 pruned_fwfm = "pruned_fwfm"
 tensorfm = "tensorfm"

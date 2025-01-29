@@ -160,10 +160,9 @@ def top_main_for_option_run(study, trial, device_ind, option_to_run):
                                 device_str, study, trial)
 
     # to make stats (std, mean) of auc, logloss metrics more reliable we run same training several times
-    for tmp_ind in range(evals_on_same_parameters-1):
-        set_torch_seed(tmp_ind+1)
+    for tmp_ind in range(evals_on_same_parameters - 1):
+        set_torch_seed(tmp_ind + 1)
         main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
-                                    device_str, study, trial)
+             device_str, study, trial)
 
     return valid_err if option_to_run.met_to_opt != auc else valid_auc
-

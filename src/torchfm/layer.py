@@ -18,6 +18,7 @@ class FeaturesLinear(torch.nn.Module):
     def forward(self, x, return_l2=False):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
+        :param return_l2: whether to return the l2 regularization term
         """
         embed, reg = self.fc(x, return_l2)
         score = torch.sum(embed, dim=1) + self.bias
