@@ -22,5 +22,9 @@ class AttentionalFactorizationMachineModel(torch.nn.Module):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
         """
+        emb, emb_reg = self.embedding(x)
+        afm, afm_reg = self.afm(emb)
+        lin, lin_reg = self.linear(x)
+        x = afm+lin
         x = self.linear(x) + self.afm(self.embedding(x))
-        return torch.sigmoid(x.squeeze(1))
+        return torch.sigmoid(x.squeeze(1)), [emb_reg,afm_reg+lin_reg]

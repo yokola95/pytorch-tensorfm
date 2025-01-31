@@ -175,10 +175,12 @@ class CrossNetwork(torch.nn.Module):
         :param x: Float tensor of size ``(batch_size, num_fields, embed_dim)``
         """
         x0 = x
+        reg_loss = 0
         for i in range(self.num_layers):
             xw = self.w[i](x)
             x = x0 * xw + self.b[i] + x
-        return x
+            reg_loss += torch.norm(self.w[i].weight, p=2)**2
+        return x, reg_loss
 
 
 class AttentionalFactorizationMachine(torch.nn.Module):
@@ -206,7 +208,13 @@ class AttentionalFactorizationMachine(torch.nn.Module):
         attn_scores = F.dropout(attn_scores, p=self.dropouts[0], training=self.training)
         attn_output = torch.sum(attn_scores * inner_product, dim=1)
         attn_output = F.dropout(attn_output, p=self.dropouts[1], training=self.training)
-        return self.fc(attn_output)
+
+        reg_loss = (
+            torch.norm(self.attention.weight, p=2) ** 2 +
+            torch.norm(self.projection.weight, p=2) ** 2 +
+            torch.norm(self.fc.weight, p=2) ** 2
+        )
+        return self.fc(attn_output), reg_loss
 
 
 class CompressedInteractionNetwork(torch.nn.Module):
