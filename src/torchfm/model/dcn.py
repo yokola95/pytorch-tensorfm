@@ -11,10 +11,10 @@ class DeepCrossNetworkModel(torch.nn.Module):
         R Wang, et al. Deep & Cross Network for Ad Click Predictions, 2017.
     """
 
-    def __init__(self, field_dims, embed_dim, num_layers, mlp_dims, dropout, is_multival=False):
+    def __init__(self, field_dims, num_columns, embed_dim, num_layers, mlp_dims, dropout, is_multival=False):
         super().__init__()
         self.embedding = FeaturesEmbedding(field_dims, embed_dim)
-        self.embed_output_dim = len(field_dims) * embed_dim
+        self.embed_output_dim = num_columns * embed_dim
         self.cn = CrossNetwork(self.embed_output_dim, num_layers)
         #self.mlp = MultiLayerPerceptron(self.embed_output_dim, mlp_dims, dropout, output_layer=False)
         # self.linear = torch.nn.Linear(self.embed_output_dim, 1)
@@ -24,6 +24,7 @@ class DeepCrossNetworkModel(torch.nn.Module):
     def forward(self, x, return_l2=False):
         """
         :param x: Long tensor of size ``(batch_size, num_fields)``
+        :param return_l2: whether to return the l2 regularization term
         """
         embed_x, reg_emb = self.embedding(x, return_l2)
         embed_x = embed_x.view(-1, self.embed_output_dim)

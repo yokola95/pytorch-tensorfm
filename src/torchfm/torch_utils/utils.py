@@ -163,7 +163,7 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
     elif name == 'opnn':
         return ProductNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16,), method='outer', dropout=0.2)
     elif name == 'dcn':
-        return DeepCrossNetworkModel(num_features, embed_dim=emb_size, num_layers=2, mlp_dims=(16, 16), dropout=0.2, is_multival=is_multival)
+        return DeepCrossNetworkModel(num_features, num_columns, embed_dim=emb_size, num_layers=2, mlp_dims=(16, 16), dropout=0.2, is_multival=is_multival)
     elif name == 'nfm':
         return NeuralFactorizationMachineModel(num_features, embed_dim=64, mlp_dims=(64,), dropouts=(0.2, 0.2))
     # elif name == 'ncf':
