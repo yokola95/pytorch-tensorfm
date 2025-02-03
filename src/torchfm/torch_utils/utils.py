@@ -163,7 +163,7 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
     elif name == 'opnn':
         return ProductNeuralNetworkModel(num_features, embed_dim=16, mlp_dims=(16,), method='outer', dropout=0.2)
     elif name == 'dcn':
-        return DeepCrossNetworkModel(num_features, embed_dim=emb_size, num_layers=2, mlp_dims=(16, 16), dropout=0.2)
+        return DeepCrossNetworkModel(num_features, embed_dim=emb_size, num_layers=2, mlp_dims=(16, 16), dropout=0.2, is_multival=is_multival)
     elif name == 'nfm':
         return NeuralFactorizationMachineModel(num_features, embed_dim=64, mlp_dims=(64,), dropouts=(0.2, 0.2))
     # elif name == 'ncf':
@@ -180,7 +180,7 @@ def get_model(name, dataset, rank_param, emb_size, tensor_fm_params=None):
         return ExtremeDeepFactorizationMachineModel(
             num_features, embed_dim=16, cross_layer_sizes=(16, 16), split_half=False, mlp_dims=(16, 16), dropout=0.2)
     elif name == 'afm':
-        return AttentionalFactorizationMachineModel(num_features, embed_dim=emb_size, attn_size=8, dropouts=(0.2, 0.2))
+        return AttentionalFactorizationMachineModel(num_features, embed_dim=emb_size, attn_size=8, dropouts=(0.2, 0.2), is_multival=is_multival)
     elif name == 'afi':
         return AutomaticFeatureInteractionModel(
             num_features, embed_dim=16, atten_embed_dim=64, num_heads=2, num_layers=3, mlp_dims=(400, 400),
