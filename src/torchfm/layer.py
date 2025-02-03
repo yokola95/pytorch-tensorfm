@@ -170,16 +170,18 @@ class CrossNetwork(torch.nn.Module):
             torch.nn.Parameter(torch.zeros((input_dim,))) for _ in range(num_layers)
         ])
 
-    def forward(self, x):
+    def forward(self, x, return_l2=False):
         """
         :param x: Float tensor of size ``(batch_size, num_fields, embed_dim)``
+        :param return_l2: whether to return the l2 regularization term
         """
         x0 = x
-        reg_loss = 0
+        reg_loss = 0.0
         for i in range(self.num_layers):
             xw = self.w[i](x)
             x = x0 * xw + self.b[i] + x
-            reg_loss += torch.norm(self.w[i].weight, p=2)**2
+            if return_l2:
+                reg_loss += torch.norm(self.w[i].weight, p=2)**2
         return x, reg_loss
 
 
@@ -192,9 +194,10 @@ class AttentionalFactorizationMachine(torch.nn.Module):
         self.fc = torch.nn.Linear(embed_dim, 1)
         self.dropouts = dropouts
 
-    def forward(self, x):
+    def forward(self, x, return_l2=False):
         """
         :param x: Float tensor of size ``(batch_size, num_fields, embed_dim)``
+        :param return_l2: whether to return the l2 regularization term
         """
         num_fields = x.shape[1]
         row, col = list(), list()
@@ -213,7 +216,7 @@ class AttentionalFactorizationMachine(torch.nn.Module):
             torch.norm(self.attention.weight, p=2) ** 2 +
             torch.norm(self.projection.weight, p=2) ** 2 +
             torch.norm(self.fc.weight, p=2) ** 2
-        )
+        ) if return_l2 else 0.0
         return self.fc(attn_output), reg_loss
 
 
