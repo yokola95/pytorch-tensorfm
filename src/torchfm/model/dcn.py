@@ -18,7 +18,7 @@ class DeepCrossNetworkModel(torch.nn.Module):
         self.cn = CrossNetwork(self.embed_output_dim, num_layers)
         #self.mlp = MultiLayerPerceptron(self.embed_output_dim, mlp_dims, dropout, output_layer=False)
         # self.linear = torch.nn.Linear(self.embed_output_dim, 1)
-        self.linear = FeaturesLinear(field_dims, is_multival=is_multival)
+        self.linear = torch.nn.Linear(self.embed_output_dim, 1)    # self.linear = FeaturesLinear(field_dims, is_multival=is_multival)
         #self.linear = torch.nn.Linear(mlp_dims[-1] + self.embed_output_dim, 1)
 
     def forward(self, x, return_l2=False):
@@ -26,11 +26,14 @@ class DeepCrossNetworkModel(torch.nn.Module):
         :param x: Long tensor of size ``(batch_size, num_fields)``
         :param return_l2: whether to return the l2 regularization term
         """
-        embed_x, reg_emb = self.embedding(x, return_l2)
+        embed_x, reg_emb = self.embedding(x)
         embed_x = embed_x.view(-1, self.embed_output_dim)
-        x_l1, reg_cn = self.cn(embed_x, return_l2)
+        x_l1, reg_cn = self.cn(embed_x)
+
+        weights = self.linear.weight  # Tensor of shape (1, embed_output_dim)
+        reg_lin = torch.sum(weights ** 2)
         #h_l2 = self.mlp(embed_x)
         #x_stack = torch.cat([x_l1, h_l2], dim=1)
         x_stack = torch.cat([x_l1], dim=1)
-        p, reg_lin = self.linear(x_stack, return_l2)
-        return p.squeeze(1), [reg_emb, reg_cn + reg_lin]    # torch.sigmoid()    - remove sigmoid since train/test with bcewithlogit
+        p = self.linear(x_stack)
+        return p.squeeze(1), [reg_emb,reg_cn + reg_lin]    # torch.sigmoid()    - remove sigmoid since train/test with bcewithlogit
