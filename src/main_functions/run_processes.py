@@ -39,7 +39,7 @@ lst_tensorfm_options = [(tensorfm, met_to_opt, 0, emb_size, tensorfm_option[0], 
 
 fwfm_options = [(fwfm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 fm_options = [(fm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
-lr_options = [(lr, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
+lr_options = [(lr, met_to_opt, 0, emb_sizes[0], [0], [0]) for met_to_opt in metrics_to_optimize]
 dcn_options = [(dcn, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 afm_options = [(afm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 
