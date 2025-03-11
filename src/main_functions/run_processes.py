@@ -1,8 +1,7 @@
 import multiprocessing as mp
 from multiprocessing import Process
 from main_optuna import run_all_for_device_ind
-from src.torchfm.torch_utils.constants import dcn,afm, lowrank_fwfm, fwfm, pruned_fwfm, fm, lr, tensorfm, mse, emb_sizes, metrics_to_optimize, \
-    ranks_to_check, device_inds
+from src.torchfm.torch_utils.constants import *
 
 
 # def generate_all_criteo_avazu_options():
@@ -18,30 +17,6 @@ from src.torchfm.torch_utils.constants import dcn,afm, lowrank_fwfm, fwfm, prune
 #     return all_options_for_studies
 
 
-# # for Criteo and Avazu
-# all_options_for_studies = [('lowrank_fwfm', 'logloss', 1, 8), ('lowrank_fwfm', 'logloss', 1, 16),
-#                            ('lowrank_fwfm', 'logloss', 2, 8), ('lowrank_fwfm', 'logloss', 2, 16),
-#                            ('lowrank_fwfm', 'logloss', 3, 8), ('lowrank_fwfm', 'logloss', 3, 16),
-#                            ('lowrank_fwfm', 'logloss', 4, 8), ('lowrank_fwfm', 'logloss', 4, 16),
-#                            ('lowrank_fwfm', 'logloss', 5, 8), ('lowrank_fwfm', 'logloss', 5, 16),
-#                            ('lowrank_fwfm', 'auc', 1, 8), ('lowrank_fwfm', 'auc', 1, 16), ('lowrank_fwfm', 'auc', 2, 8),
-#                            ('lowrank_fwfm', 'auc', 2, 16), ('lowrank_fwfm', 'auc', 3, 8),
-#                            ('lowrank_fwfm', 'auc', 3, 16), ('lowrank_fwfm', 'auc', 4, 8),
-#                            ('lowrank_fwfm', 'auc', 4, 16), ('lowrank_fwfm', 'auc', 5, 8),
-#                            ('lowrank_fwfm', 'auc', 5, 16), ('pruned_fwfm', 'logloss', 1, 8),
-#                            ('pruned_fwfm', 'logloss', 1, 16), ('pruned_fwfm', 'logloss', 2, 8),
-#                            ('pruned_fwfm', 'logloss', 2, 16), ('pruned_fwfm', 'logloss', 3, 8),
-#                            ('pruned_fwfm', 'logloss', 3, 16), ('pruned_fwfm', 'logloss', 4, 8),
-#                            ('pruned_fwfm', 'logloss', 4, 16), ('pruned_fwfm', 'logloss', 5, 8),
-#                            ('pruned_fwfm', 'logloss', 5, 16), ('pruned_fwfm', 'auc', 1, 8),
-#                            ('pruned_fwfm', 'auc', 1, 16), ('pruned_fwfm', 'auc', 2, 8), ('pruned_fwfm', 'auc', 2, 16),
-#                            ('pruned_fwfm', 'auc', 3, 8), ('pruned_fwfm', 'auc', 3, 16), ('pruned_fwfm', 'auc', 4, 8),
-#                            ('pruned_fwfm', 'auc', 4, 16), ('pruned_fwfm', 'auc', 5, 8), ('pruned_fwfm', 'auc', 5, 16),
-#                            ('fwfm', 'logloss', 0, 8), ('fwfm', 'logloss', 0, 16), ('fwfm', 'auc', 0, 8),
-#                            ('fwfm', 'auc', 0, 16), ('fm', 'logloss', 0, 8), ('fm', 'logloss', 0, 16),
-#                            ('fm', 'auc', 0, 8), ('fm', 'auc', 0, 16)]
-
-
 # # movielens
 # def generate_movielens_options():
 #     movielens_options = [(m_to_check, mse, rank, emb_size) for m_to_check in [lowrank_fwfm, pruned_fwfm] for rank in
@@ -49,19 +24,6 @@ from src.torchfm.torch_utils.constants import dcn,afm, lowrank_fwfm, fwfm, prune
 #     movielens_options_fwfm_fm = [(m_to_check, mse, 0, emb_size) for m_to_check in [fwfm, fm] for emb_size in emb_sizes]
 #     movielens_options.extend(movielens_options_fwfm_fm)
 #     return movielens_options
-
-
-# # for MovieLens
-# movielens_options_studies = [('lowrank_fwfm', 'mse', 1, 8), ('lowrank_fwfm', 'mse', 1, 16),
-#                              ('lowrank_fwfm', 'mse', 2, 8), ('lowrank_fwfm', 'mse', 2, 16),
-#                              ('lowrank_fwfm', 'mse', 3, 8), ('lowrank_fwfm', 'mse', 3, 16),
-#                              ('lowrank_fwfm', 'mse', 4, 8), ('lowrank_fwfm', 'mse', 4, 16),
-#                              ('lowrank_fwfm', 'mse', 5, 8), ('lowrank_fwfm', 'mse', 5, 16),
-#                              ('pruned_fwfm', 'mse', 1, 8), ('pruned_fwfm', 'mse', 1, 16), ('pruned_fwfm', 'mse', 2, 8),
-#                              ('pruned_fwfm', 'mse', 2, 16), ('pruned_fwfm', 'mse', 3, 8), ('pruned_fwfm', 'mse', 3, 16),
-#                              ('pruned_fwfm', 'mse', 4, 8), ('pruned_fwfm', 'mse', 4, 16), ('pruned_fwfm', 'mse', 5, 8),
-#                              ('pruned_fwfm', 'mse', 5, 16), ('fwfm', 'mse', 0, 8), ('fwfm', 'mse', 0, 16),
-#                              ('fm', 'mse', 0, 8), ('fm', 'mse', 0, 16)]
 
 
 
@@ -77,7 +39,7 @@ lst_tensorfm_options = [(tensorfm, met_to_opt, 0, emb_size, tensorfm_option[0], 
 
 fwfm_options = [(fwfm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 fm_options = [(fm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
-lr_options = [(lr, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
+lr_options = [(lr, met_to_opt, 0, emb_sizes[0], [0], [0]) for met_to_opt in metrics_to_optimize]
 dcn_options = [(dcn, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 afm_options = [(afm, met_to_opt, 0, emb_size, [0], [0]) for met_to_opt in metrics_to_optimize for emb_size in emb_sizes]
 
