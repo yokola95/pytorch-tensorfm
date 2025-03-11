@@ -26,5 +26,4 @@ class AttentionalFactorizationMachineModel(torch.nn.Module):
         afm, afm_reg = self.afm(emb)
         lin, lin_reg = self.linear(x)
         x = afm+lin
-        x = self.linear(x) + self.afm(self.embedding(x))
         return torch.sigmoid(x.squeeze(1)), [emb_reg,afm_reg+lin_reg]
