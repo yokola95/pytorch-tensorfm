@@ -1,7 +1,48 @@
 from src.main_functions.main import top_main_for_option_run
-from src.torchfm.torch_utils.constants import *
+from src.torchfm.torch_utils.constants import tensorfm, tmp_save_dir
 from src.torchfm.torch_utils.options_to_run import Option2Run, TensorFMParams
 import torch
+
+
+# def run_save_single_model():
+#     opt_name = "adagrad"
+#     batch_size = 256
+#     learning_rate = 0.01578378074
+#     model_name = "lowrank_fwfm"
+#     device_ind = 0
+#     metric_to_optimize = "logloss"
+#     emb_size = 8
+#     rank_param = 5
+#     study = None
+#     trial = None
+#     reg_coef_vectors = 0.01
+#     reg_coef_biases = 0.01
+
+#     from src.torchfm.torch_utils.options_to_run import Option2Run
+#     option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, learning_rate, opt_name, batch_size, reg_coef_vectors, reg_coef_biases, 0)
+
+#     top_main_for_option_run(study, trial, device_ind, option_to_run)
+
+def run_save_single_tensorfm_model_compas():
+    opt_name = "adagrad"
+    batch_size = 10
+    learning_rate = float(0.09789094044298524)
+    model_name = tensorfm
+    device_ind = 0
+    metric_to_optimize = "logloss"
+    rank_param = 0
+    emb_size = 8
+    dim_int = [2, 3]
+    ten_ranks = [4, 4]
+    study = None
+    trial = None
+    reg_coef_vectors = 6.787145381076653e-05
+    reg_coef_biases = 3.9281412499771244e-05
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, learning_rate, opt_name,
+                               batch_size, TensorFMParams(dim_int, ten_ranks),
+                               reg_coef_vectors, reg_coef_biases, 0.0)
+    _, model = top_main_for_option_run(study, trial, device_ind, option_to_run)
+    torch.save(model.state_dict(), f"{tmp_save_dir}/tensorfm_model_compas.pt")
 
 
 def run_save_single_tensorfm_model():
@@ -12,13 +53,18 @@ def run_save_single_tensorfm_model():
     device_ind = 0
     metric_to_optimize = "logloss"
     rank_param = 0
-    emb_size = 16
-    dim_int = [2, 3, 4]
-    ten_ranks = [16, 16, 16]
+    emb_size = 8
+    dim_int = [2, 3]  # dim_int = [2,3,4]
+    ten_ranks = [2, 2]  # ten_ranks = [16,16,16]
     study = None
     trial = None
     reg_coef_vectors = 6.782664216257058e-05
     reg_coef_biases = 4.450358456996342e-05
+
+    option_to_run = Option2Run(model_name, metric_to_optimize, rank_param, emb_size, learning_rate, opt_name,
+                               batch_size, TensorFMParams(dim_int, ten_ranks), reg_coef_vectors, reg_coef_biases, 0.0)
+    _, model = top_main_for_option_run(study, trial, device_ind, option_to_run)
+    torch.save(model.state_dict(), f"{tmp_save_dir}/tensorfm_model.pt")
 
     #     Study tensorfm logloss 0 16,tensorfm,logloss,0,16,0.09630427772973353,adagrad,1024,2_3_4_16_16_16,True,6.782664216257058e-05,4.450358456996342e-05,0.0,47,10,0.36920858074128965,0.7984293103218079,0.38045444269295015,0.7793753147125244,0.37957595753737977,0.7798559665679932,6.044466257095337,3.282675266265869,bcelogitloss,avazu
 
@@ -71,3 +117,4 @@ def show_image(arr):
 
 if __name__ == '__main__':
     run_save_single_tensorfm_model()
+    # run_save_single_tensorfm_model_compas()
