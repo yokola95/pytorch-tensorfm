@@ -11,7 +11,7 @@ from src.torchfm.torch_utils.io_utils import write_debug_info
 
 def objective(study, trial, model_name, device_ind, metric_to_optimize, rank_param, emb_size, dim_int, ten_ranks):
     lr = trial.suggest_float('lr', lr_min, lr_max, log=True)
-    opt_name = "adagrad"  #  trial.suggest_categorical("opt_name", ["adagrad"])  # , "sgd" # ["adam", "sparseadam"]  make issues with sparse/dense gradients
+    opt_name = "adagrad"  # other optimizers causing issues with sparse/dense gradients
     batch_size = trial.suggest_categorical("batch_size", batch_sizes_to_check)
 
     coef_vectors = trial.suggest_float("coef_vectors", coef_vectors_min, coef_vectors_max)  # reg coef vectors

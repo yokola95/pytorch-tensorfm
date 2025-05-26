@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from src.torchfm.layer import FeaturesEmbedding, FeaturesLinear
-
+from functools import reduce
 
 class TensorFactorizationMachineModel(torch.nn.Module):
     # dim_int = [d_1,...,d_l] and rank_tensors = [r_1,...,r_l] are two lists
@@ -29,12 +29,8 @@ class TensorFactorizationMachineModel(torch.nn.Module):
         emb, reg_emb = self.embedding(x, return_l2)
         ret, reg_linear = self.linear(x, return_l2)
 
-        results = [self.calc_cross(emb, i) for i in range(self.l)]
-        ret = ret + torch.stack(results).sum(dim=0)
-
-        # CHECK IF THIS IS MORE EFFICIENT:
-        # from functools import reduce
-        # ret = reduce(lambda t1, t2: torch.add(t1, t2), tmp_tensors_lst)
+        tmp_tensors_lst = [self.calc_cross(emb, i) for i in range(self.l)]
+        ret = reduce(lambda t1, t2: torch.add(t1, t2), tmp_tensors_lst)
 
         ret = ret.squeeze(-1)
 

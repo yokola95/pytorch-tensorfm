@@ -6,8 +6,7 @@ import torch
 import sys
 
 from src.torchfm.torch_utils.batch_iterator import BatchIter
-from src.torchfm.torch_utils.constants import debug_print, torch_global_seed, python_random_seed, movielens, criteo, \
-    avazu, triple_dataset, random_binary_function
+from src.torchfm.torch_utils.constants import *
 from src.torchfm.dataset.wrapper_dataset import WrapperDataset
 from src.torchfm.dataset.wrapper_multivalued_dataset import WrapperMultivaluedDataset
 from src.torchfm.model.afi import AutomaticFeatureInteractionModel
@@ -86,16 +85,10 @@ def get_criterion(criterion):
 def get_dataset(name, path):
     if movielens in name:
         return WrapperMultivaluedDataset(path)
-    elif name == criteo:
+    elif name in [criteo, 'wrapper']:
         return WrapperDataset(path)
-    elif name == avazu:
+    elif name in [avazu, triple_dataset, random_binary_function, random_binary_function_4_cols, compas]:
         return WrapperDataset(path, sep=',')
-    elif name == triple_dataset:
-        return WrapperDataset(path, sep=',')
-    elif name == random_binary_function:
-        return WrapperDataset(path, sep=',')
-    elif name == 'wrapper':
-        return WrapperDataset(path)
     else:
         raise ValueError('unknown dataset name: ' + name)
 

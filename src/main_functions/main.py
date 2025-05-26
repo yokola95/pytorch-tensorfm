@@ -135,34 +135,30 @@ def main(dataset_nm, dataset_paths, option_to_run, epoch, criterion_name, weight
             valid_test_save(model, train_iterator_loss, valid_iterator, test_iterator, criterion, device, option_to_run,
                             study_name, trial_number, epoch_i, train_time, criterion_name, dataset_nm, best_error)
 
-    #         prune_running_if_needed(trial, valid_err, epoch_)
-
-    #         early_stopper(valid_err)
-    #         if early_stopper.early_stop:
-    #             print(f'early stopped validation: best error: {early_stopper.best_loss}')
-    #             break
-
     train_err, train_auc, valid_err, valid_auc, test_err, test_auc, _ = valid_test(model, None, valid_iterator,
                                                                                    test_iterator, criterion, device)
     print_msg(f'valid error: {valid_err} test error: {test_err}')
 
-    return best_error.best_logloss, best_error.best_auc
+    return best_error.best_logloss, best_error.best_auc, model
 
 
 def top_main_for_option_run(study, trial, device_ind, option_to_run):
+    import traceback
     set_torch_seed()
     device_str = get_device_str(device_ind)
 
     train_valid_test_paths = get_train_validation_test_preprocessed_paths(test_datasets_path)
 
     criterion_name = mse if movielens in train_valid_test_paths[0] else 'bcelogitloss'
-    valid_err, valid_auc = main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
-                                device_str, study, trial)
+
+    valid_err, valid_auc, model = main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name,
+                                       0,
+                                       device_str, study, trial)
 
     # to make stats (std, mean) of auc, logloss metrics more reliable we run same training several times
-    for tmp_ind in range(evals_on_same_parameters - 1):
-        set_torch_seed(tmp_ind + 1)
-        main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
-             device_str, study, trial)
+    #     for tmp_ind in range(evals_on_same_parameters-1):
+    #         set_torch_seed(tmp_ind+1)
+    #         main(dataset_name, train_valid_test_paths, option_to_run, epochs_num, criterion_name, 0,
+    #                                     device_str, study, trial)
 
-    return valid_err if option_to_run.met_to_opt != auc else valid_auc
+    return (valid_err if option_to_run.met_to_opt != auc else valid_auc)
