@@ -37,6 +37,7 @@ triple_dataset = "triple-dataset"
 random_binary_function = "random_binary_function"
 random_binary_function_4_cols = "random_binary_function_4_cols"
 compas = "compas"
+synthetic_interactions_trees = "synthetic_interactions_trees"
 
 # Constants for Model parameters
 debug_print = False

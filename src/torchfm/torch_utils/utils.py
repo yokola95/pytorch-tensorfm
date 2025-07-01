@@ -87,10 +87,8 @@ def get_dataset(name, path):
         return WrapperMultivaluedDataset(path)
     elif name in [criteo, 'wrapper']:
         return WrapperDataset(path)
-    elif name in [avazu, triple_dataset, random_binary_function, random_binary_function_4_cols, compas]:
-        return WrapperDataset(path, sep=',')
     else:
-        raise ValueError('unknown dataset name: ' + name)
+        return WrapperDataset(path, sep=',')
 
 
 def get_datasets(dataset_name, dataset_paths):
