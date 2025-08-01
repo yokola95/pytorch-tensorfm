@@ -55,7 +55,7 @@ label, user_id, item_id, C1, C2, …
     from torchfm.torch_utils.parsing_datasets.criteo.criteo_parsing import CriteoParsing 
     CriteoParsing.do_preprocessing()
 
-4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-fm/torchfm/test-datasets/criteo/
+4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-tensorfm/torchfm/test-datasets/criteo/
 5. Check you have enough (5G) available space and 
    proceed to run the ML models on the train-validation-test datasets.
 
@@ -68,7 +68,7 @@ label, user_id, item_id, C1, C2, …
     from torchfm.torch_utils.parsing_datasets.movielens.movielens_parsing import MovielensParsing 
     MovielensParsing.process_data()
 
-4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-fm/torchfm/test-datasets/movielens/
+4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-tensorfm/torchfm/test-datasets/movielens/
 5. Check you have enough (5G) available space and 
    proceed to run the ML models on the train-validation-test datasets.
 
@@ -78,7 +78,7 @@ label, user_id, item_id, C1, C2, …
 1. Copy the code to the dedicated folder. Install all requirements. 
 
 2. In the shell redefine PYTHONPATH to point to your project root, .e.g,
-export PYTHONPATH=$PYTHONPATH:/home/${USER}/pytorch-fm/src:/home/${USER}/pytorch-fm/src/main_functions
+export PYTHONPATH=$PYTHONPATH:/home/${USER}/pytorch-tensorfm/src:/home/${USER}/pytorch-tensorfm/src/main_functions
 
 3. Edit pytorch-tensorfm/torchfm/torch_utils/constants.py file 
 to have 
@@ -108,7 +108,7 @@ python ./pytorch-tensorfm/src/main_functions/run_processes.py
 
 9. After the run is done, the results are saved in 
 /pytorch-tensorfm/data/tmp_save_dir/optuna_results.txt. 
-Also, debug info is saved in /pytorch-fm/data/tmp_save_dir/debug_info.txt
+Also, debug info is saved in /pytorch-tensorfm/data/tmp_save_dir/debug_info.txt
 
 # Instructions: How to analyze the results
 Open the notebook in `notebooks/analysis.ipynb`, modify the line
