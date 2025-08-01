@@ -78,8 +78,8 @@ label, user_id, item_id, C1, C2, …
 2. put it to pytorch-tensorfm/torchfm/test-datasets/COMPAS/ (The repo already includes the required filed)
 3. To create train-validation-test datatsets, from the python  shell run: 
 
-    from torchfm.torch_utils.parsing_datasets.COMPAS import Process_data 
-    Process_data.main()
+    from torchfm.torch_utils.parsing_datasets.COMPAS import Process_COMPAS 
+    Process_COMPAS.main()
 
 4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-tensorfm/torchfm/test-datasets/COMPAS/
 5. Check you have enough (5G) available space and 
