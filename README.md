@@ -72,6 +72,16 @@ label, user_id, item_id, C1, C2, …
 5. Check you have enough (5G) available space and 
    proceed to run the ML models on the train-validation-test datasets.
 
+## How to preprocess COMPAS dataset
+1. Download the initial files from
+   https://www.kaggle.com/datasets/danofer/compass
+2. put it to pytorch-tensorfm/torchfm/test-datasets/COMPAS/ (The repo already includes the required filed)
+3. To create train-validation-test datatsets, from the python  shell run: 
+
+    from torchfm.torch_utils.parsing_datasets.COMPAS.Process_COMPAS import main
+    main()
+
+4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-tensorfm/torchfm/test-datasets/COMPAS/
 
 # Instructions: How to run a dataset on a local environment
 
