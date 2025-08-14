@@ -82,8 +82,6 @@ label, user_id, item_id, C1, C2, …
     main()
 
 4. Check that now train.csv, test.csv, validation.csv and stored under /pytorch-tensorfm/torchfm/test-datasets/COMPAS/
-5. Check you have enough (5G) available space and 
-   proceed to run the ML models on the train-validation-test datasets.
 
 # Instructions: How to run a dataset on a local environment
 
