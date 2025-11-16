@@ -61,7 +61,7 @@ lr_max = 0.1
 models_to_check = [fwfm, lowrank_fwfm, pruned_fwfm]
 metrics_to_optimize = [logloss, auc]
 ranks_to_check = [1, 2, 3, 4, 5]
-device_inds = list(range(4))
+device_inds = [0, 0]
 
 # Default TensorFM parameters
 dim_int = [0]
@@ -69,10 +69,10 @@ ten_ranks = [0]
 
 # Paths
 user = "<username>"
-base_path_project = f"/home/{user}/persistent_drive/pytorch-tensorfm/data"
+base_path_project = "/content/pytorch-tensorfm/data"
 tmp_save_dir = '{}/tmp_save_dir'.format(base_path_project)
 
-dataset_name = random_binary_function_4_cols  # triple_dataset # avazu # random_binary_function
+dataset_name = avazu  # triple_dataset # avazu # random_binary_function
 test_datasets_path = "{}/test-datasets/{}".format(base_path_project,dataset_name)
 
 optuna_num_trials = 50 # was 50 then 100
